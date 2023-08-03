@@ -12,7 +12,7 @@ import (
 func main() {
 	c := config.Get("dev")
 
-	err := server.NewGRPC(c.AUTH, c, func(h *database.Handler, grpc *grpc.Server) {
+	err := server.NewGRPC(c.DOCKER, c, func(h *database.Handler, grpc *grpc.Server) {
 		s := services.NewServer(h.Database())
 		proto.RegisterDockerServiceServer(grpc, s)
 	})
