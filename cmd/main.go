@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/alpha-omega-corp/docker-svc/pkg/proto"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/alpha-omega-corp/services/database"
 	"github.com/alpha-omega-corp/services/server"
-	"github.com/alpha-omega-org/docker-svc/pkg/proto"
-	"github.com/alpha-omega-org/docker-svc/pkg/services"
 	"google.golang.org/grpc"
 )
 
