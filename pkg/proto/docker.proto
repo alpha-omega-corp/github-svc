@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package docker;
+
+option go_package = "./pkg/proto";
+
+service DockerService {
+  rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) {}
+}
+
+message CreateContainerRequest {
+  string imageName = 1;
+
+}
+
+message CreateContainerResponse {
+  int64 status = 1;
+  string error = 2;
+
+  int64 containerId = 3;
+}
