@@ -9,7 +9,8 @@ service DockerService {
 }
 
 message CreateContainerRequest {
-  string imageName = 1;
+  string name = 1;
+  string image = 2;
 }
 
 message CreateContainerResponse {

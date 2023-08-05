@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/alpha-omega-corp/services v0.0.0-20230805111941-84cbc296d601
+	github.com/spf13/viper v1.16.0
 	github.com/uptrace/bun v1.1.14
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.30.0
@@ -24,7 +25,6 @@ require (
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.16.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/uptrace/bun/dialect/pgdialect v1.1.14 // indirect
