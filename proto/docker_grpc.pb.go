@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.15.8
-// source: pkg/proto/docker.proto
+// source: proto/docker.proto
 
 package proto
 
@@ -101,5 +101,5 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pkg/proto/docker.proto",
+	Metadata: "proto/docker.proto",
 }
