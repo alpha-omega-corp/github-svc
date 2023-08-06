@@ -16,5 +16,5 @@ message CreateContainerRequest {
 message CreateContainerResponse {
   int64 status = 1;
   string error = 2;
-  int64 containerId = 3;
+  string container = 3;
 }
