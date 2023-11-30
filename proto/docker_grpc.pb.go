@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DockerServiceClient interface {
 	CreateContainer(ctx context.Context, in *CreateContainerRequest, opts ...grpc.CallOption) (*CreateContainerResponse, error)
+	GetContainers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetContainersResponse, error)
 }
 
 type dockerServiceClient struct {
@@ -42,11 +44,21 @@ func (c *dockerServiceClient) CreateContainer(ctx context.Context, in *CreateCon
 	return out, nil
 }
 
+func (c *dockerServiceClient) GetContainers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetContainersResponse, error) {
+	out := new(GetContainersResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetContainers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DockerServiceServer is the server API for DockerService service.
 // All implementations must embed UnimplementedDockerServiceServer
 // for forward compatibility
 type DockerServiceServer interface {
 	CreateContainer(context.Context, *CreateContainerRequest) (*CreateContainerResponse, error)
+	GetContainers(context.Context, *emptypb.Empty) (*GetContainersResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
 }
 
@@ -56,6 +68,9 @@ type UnimplementedDockerServiceServer struct {
 
 func (UnimplementedDockerServiceServer) CreateContainer(context.Context, *CreateContainerRequest) (*CreateContainerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateContainer not implemented")
+}
+func (UnimplementedDockerServiceServer) GetContainers(context.Context, *emptypb.Empty) (*GetContainersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetContainers not implemented")
 }
 func (UnimplementedDockerServiceServer) mustEmbedUnimplementedDockerServiceServer() {}
 
@@ -88,6 +103,24 @@ func _DockerService_CreateContainer_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_GetContainers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).GetContainers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/GetContainers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).GetContainers(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DockerService_ServiceDesc is the grpc.ServiceDesc for DockerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +131,10 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateContainer",
 			Handler:    _DockerService_CreateContainer_Handler,
+		},
+		{
+			MethodName: "GetContainers",
+			Handler:    _DockerService_GetContainers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

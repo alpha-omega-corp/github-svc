@@ -11,7 +11,7 @@ import (
 
 type ContainerHandler interface {
 	Create(name string, c *container.Config, ctx context.Context) (string, error)
-	Get(ctx context.Context) ([]types.Container, error)
+	GetAll(ctx context.Context) ([]types.Container, error)
 }
 
 type containerHandler struct {
@@ -25,7 +25,7 @@ func NewContainerHandler(c *client.Client) ContainerHandler {
 	}
 }
 
-func (h *containerHandler) Get(ctx context.Context) ([]types.Container, error) {
+func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error) {
 	containers, err := h.client.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return nil, err

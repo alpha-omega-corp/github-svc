@@ -1,11 +1,13 @@
 syntax = "proto3";
 
 package docker;
-
+import "google/protobuf/empty.proto";
 option go_package = "./pkg/proto";
 
 service DockerService {
   rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) {}
+  rpc GetContainers(google.protobuf.Empty) returns (GetContainersResponse) {}
+
 }
 
 message CreateContainerRequest {
@@ -17,4 +19,13 @@ message CreateContainerResponse {
   int64 status = 1;
   string error = 2;
   string container = 3;
+}
+
+message GetContainersResponse {
+  repeated Container containers = 1;
+}
+
+message Container {
+  int64 id = 1;
+  string name = 2;
 }
