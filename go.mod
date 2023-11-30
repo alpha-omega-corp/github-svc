@@ -1,9 +1,8 @@
-module docker-svc
+module github.com/alpha-omega-corp/docker-svc
 
 go 1.21
 
 require (
-	github.com/alpha-omega-corp/docker-svc v0.0.0-20230806071734-2b3213ac0f96
 	github.com/alpha-omega-corp/services v0.0.0-20230807113232-fe2f406b3e48
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/spf13/viper v1.17.0
@@ -28,6 +27,8 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/moby/term v0.5.0 // indirect
+	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
@@ -57,5 +58,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gotest.tools/v3 v3.5.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )

@@ -1,12 +1,11 @@
 syntax = "proto3";
 
 package docker;
-import "google/protobuf/empty.proto";
 option go_package = "./pkg/proto";
 
 service DockerService {
   rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) {}
-  rpc GetContainers(google.protobuf.Empty) returns (GetContainersResponse) {}
+  rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
 
 }
 
@@ -21,11 +20,18 @@ message CreateContainerResponse {
   string container = 3;
 }
 
+message GetContainersRequest {}
+
 message GetContainersResponse {
   repeated Container containers = 1;
 }
 
 message Container {
-  int64 id = 1;
-  string name = 2;
+  string id = 1;
+  string image = 2;
+  string status = 3;
+  string command = 4;
+  int64 created = 5;
+  string state = 6;
+  repeated string names = 7;
 }
