@@ -6,7 +6,9 @@ import (
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/docker/docker/api/types/container"
 	"github.com/uptrace/bun"
+	"io"
 	"net/http"
+	"strings"
 )
 
 type Server struct {
@@ -30,7 +32,7 @@ func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequ
 		return nil, err
 	}
 
-	resSlice := make([]*proto.Container, len(containers))
+	var resSlice []*proto.Container
 	for _, c := range containers {
 		resSlice = append(resSlice, &proto.Container{
 			Id:      c.ID,
@@ -45,6 +47,23 @@ func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequ
 
 	return &proto.GetContainersResponse{
 		Containers: resSlice,
+	}, nil
+}
+
+func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLogsRequest) (*proto.GetContainerLogsResponse, error) {
+	logs, err := s.docker.Container().GetLogs(req.ContainerId, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	logsBuffer := new(strings.Builder)
+	_, bufErr := io.Copy(logsBuffer, logs)
+	if bufErr != nil {
+		return nil, bufErr
+	}
+
+	return &proto.GetContainerLogsResponse{
+		Logs: logsBuffer.String(),
 	}, nil
 }
 

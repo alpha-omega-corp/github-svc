@@ -6,7 +6,7 @@ option go_package = "./pkg/proto";
 service DockerService {
   rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) {}
   rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
-
+  rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse) {}
 }
 
 message CreateContainerRequest {
@@ -24,6 +24,14 @@ message GetContainersRequest {}
 
 message GetContainersResponse {
   repeated Container containers = 1;
+}
+
+message GetContainerLogsRequest {
+  string containerId = 1;
+}
+
+message GetContainerLogsResponse {
+  string logs = 1;
 }
 
 message Container {

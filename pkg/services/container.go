@@ -12,6 +12,7 @@ import (
 type ContainerHandler interface {
 	Create(name string, c *container.Config, ctx context.Context) (string, error)
 	GetAll(ctx context.Context) ([]types.Container, error)
+	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
 
 type containerHandler struct {
@@ -32,6 +33,17 @@ func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error
 	}
 
 	return containers, nil
+}
+
+func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error) {
+	options := types.ContainerLogsOptions{ShowStdout: true}
+	logs, err := h.client.ContainerLogs(ctx, containerId, options)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return logs, nil
 }
 
 func (h *containerHandler) Create(name string, c *container.Config, ctx context.Context) (s string, err error) {
