@@ -1,2 +1,0 @@
-host: localhost:50052
-dsn: postgres://root:root@localhost:5433/docker_svc

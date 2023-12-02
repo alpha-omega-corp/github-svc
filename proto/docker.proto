@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package docker;
-option go_package = "./pkg/proto";
+option go_package = "github.com/alpha-omega-corp/docker-svc/proto";
 
 service DockerService {
   rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) {}
@@ -10,8 +10,7 @@ service DockerService {
 }
 
 message CreateContainerRequest {
-  string name = 1;
-  string image = 2;
+  bytes dockerfile = 1;
 }
 
 message CreateContainerResponse {

@@ -36,7 +36,11 @@ func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error
 }
 
 func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error) {
-	options := types.ContainerLogsOptions{ShowStdout: true}
+	options := types.ContainerLogsOptions{
+		ShowStdout: true,
+		Timestamps: true,
+		Details:    false,
+	}
 	logs, err := h.client.ContainerLogs(ctx, containerId, options)
 
 	if err != nil {

@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/proto"
-	"github.com/docker/docker/api/types/container"
 	"github.com/uptrace/bun"
 	"io"
 	"net/http"
@@ -58,6 +56,7 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 
 	logsBuffer := new(strings.Builder)
 	_, bufErr := io.Copy(logsBuffer, logs)
+
 	if bufErr != nil {
 		return nil, bufErr
 	}
@@ -68,21 +67,10 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 }
 
 func (s *Server) CreateContainer(ctx context.Context, req *proto.CreateContainerRequest) (*proto.CreateContainerResponse, error) {
-	id, err := s.docker.Container().Create(req.Name, &container.Config{
-		Image: req.Image,
-		Cmd:   []string{"echo", "booted"},
-		Tty:   false,
-	}, ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Print(id)
 
 	return &proto.CreateContainerResponse{
 		Status:    http.StatusCreated,
-		Container: id,
+		Container: "2",
 	}, nil
 
 }

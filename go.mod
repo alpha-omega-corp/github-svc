@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/alpha-omega-corp/services v0.0.0-20230807113232-fe2f406b3e48
 	github.com/docker/docker v24.0.7+incompatible
+	github.com/google/go-github/v56 v56.0.0
 	github.com/spf13/viper v1.17.0
 	github.com/uptrace/bun v1.1.16
 	google.golang.org/grpc v1.59.0
@@ -21,6 +22,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
