@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
@@ -67,6 +68,12 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 }
 
 func (s *Server) CreateContainer(ctx context.Context, req *proto.CreateContainerRequest) (*proto.CreateContainerResponse, error) {
+	req.Dockerfile = bytes.Trim(req.Dockerfile, "\x00")
+
+	err := s.docker.Container().Create(req.Dockerfile, req.Workdir, ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &proto.CreateContainerResponse{
 		Status:    http.StatusCreated,

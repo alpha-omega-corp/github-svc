@@ -3,14 +3,13 @@ package services
 import (
 	"context"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"io"
 	"os"
 )
 
 type ContainerHandler interface {
-	Create(name string, c *container.Config, ctx context.Context) (string, error)
+	Create(file []byte, workdir string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -50,28 +49,13 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 	return logs, nil
 }
 
-func (h *containerHandler) Create(name string, c *container.Config, ctx context.Context) (s string, err error) {
-	out, err := h.client.ImagePull(ctx, c.Image, types.ImagePullOptions{})
-	if err != nil {
-		panic(err)
-	}
-	defer func(out io.ReadCloser) {
-		err := out.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(out)
+func (h *containerHandler) Create(file []byte, workdir string, ctx context.Context) error {
+	path := "storage/" + workdir + "/Dockerfile"
 
-	_, err = io.Copy(os.Stdout, out)
+	err := os.WriteFile(path, file, 0644)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	cc, err := h.client.ContainerCreate(ctx, c, nil, nil, nil, name)
-
-	if err != nil {
-		return "", err
-	}
-
-	return cc.ID, nil
+	return nil
 }
