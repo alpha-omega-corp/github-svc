@@ -10,3 +10,9 @@ protoc:
 
 db_create:
 	docker-compose up -d
+
+db_init:
+	go run cmd/migrations/main.go db init
+
+db_reset:
+	go run cmd/migrations/main.go db reset

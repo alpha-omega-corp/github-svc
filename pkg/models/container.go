@@ -1,11 +1,13 @@
 package models
 
-import "github.com/uptrace/bun"
+import (
+	"github.com/uptrace/bun"
+)
 
-type Container struct {
-	bun.BaseModel `bun:"table:containers,alias:ct"`
+type ContainerPackage struct {
+	bun.BaseModel `bun:"table:packages,alias:pkg"`
 
-	ID    int64  `json:"id" bun:"id,pk"`
-	Name  string `json:"name" bun:"name"`
-	Image string `json:"image" bun:"image"`
+	ID   int64  `json:"id" bun:"id,pk,autoincrement"`
+	Name string `json:"name" bun:"name"`
+	Tag  string `json:"tag" bun:"tag"`
 }

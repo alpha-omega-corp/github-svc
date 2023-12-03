@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"io"
@@ -61,7 +62,7 @@ func (h *containerHandler) Create(file []byte, workdir string, tag string, ctx c
 	}
 
 	go func() {
-		err := makeFile("storage/"+workdir, tag)
+		err := makeFile(workdir, tag)
 		if err != nil {
 			panic(err)
 		}
@@ -70,8 +71,13 @@ func (h *containerHandler) Create(file []byte, workdir string, tag string, ctx c
 	return nil
 }
 
+func PadLeft(s string) string {
+	return fmt.Sprintf("%s"+s, "\t")
+}
+
 func makeFile(workdir string, tag string) error {
-	mFile, err := os.Create("storage/" + workdir + "/Makefile")
+	workDirPath := "storage/" + workdir
+	mFile, err := os.Create(workDirPath + "/Makefile")
 	if err != nil {
 		return err
 	}
@@ -84,11 +90,11 @@ func makeFile(workdir string, tag string) error {
 
 	lines := []string{
 		"create:",
-		"docker build -t alpha-omega-corp/" + workdir + ":" + tag + " .",
+		PadLeft("docker build -t alpha-omega-corp/" + workdir + ":" + tag + " ."),
 		"tag:",
-		"docker tag alpha-omega-corp/" + workdir + ":" + tag + " alpha-omega-corp/" + workdir + ":" + tag,
+		PadLeft("docker tag alpha-omega-corp/" + workdir + ":" + tag + " alpha-omega-corp/" + workdir + ":" + tag),
 		"push:",
-		"docker push alpha-omega-corp/" + workdir + ":" + tag,
+		PadLeft("docker push alpha-omega-corp/" + workdir + ":" + tag),
 	}
 
 	for _, line := range lines {
