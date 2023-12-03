@@ -12,6 +12,7 @@ service DockerService {
 message CreateContainerRequest {
   bytes dockerfile = 1;
   string workdir = 2;
+  string tag = 3;
 }
 
 message CreateContainerResponse {

@@ -1,2 +1,3 @@
 .idea
 pkg/config/envs/dev.yaml
+/storage/**/*

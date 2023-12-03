@@ -9,7 +9,7 @@ import (
 )
 
 type ContainerHandler interface {
-	Create(file []byte, workdir string, ctx context.Context) error
+	Create(file []byte, workdir string, tag string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -49,12 +49,55 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 	return logs, nil
 }
 
-func (h *containerHandler) Create(file []byte, workdir string, ctx context.Context) error {
+func (h *containerHandler) Create(file []byte, workdir string, tag string, ctx context.Context) error {
 	path := "storage/" + workdir + "/Dockerfile"
 
-	err := os.WriteFile(path, file, 0644)
+	if err := os.MkdirAll("storage/"+workdir, os.ModePerm); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, file, 0644); err != nil {
+		return err
+	}
+
+	go func() {
+		err := makeFile("storage/"+workdir, tag)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	return nil
+}
+
+func makeFile(workdir string, tag string) error {
+	mFile, err := os.Create("storage/" + workdir + "/Makefile")
 	if err != nil {
 		return err
+	}
+	defer func(mFile *os.File) {
+		err := mFile.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(mFile)
+
+	lines := []string{
+		"create:",
+		"docker build -t alpha-omega-corp/" + workdir + ":" + tag + " .",
+		"tag:",
+		"docker tag alpha-omega-corp/" + workdir + ":" + tag + " alpha-omega-corp/" + workdir + ":" + tag,
+		"push:",
+		"docker push alpha-omega-corp/" + workdir + ":" + tag,
+	}
+
+	for _, line := range lines {
+
+		_, err := mFile.WriteString(line + "\n")
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
