@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/services/database"
@@ -44,6 +45,7 @@ func migrateCommand(db *bun.DB) *cli.Command {
 				Name:  "init",
 				Usage: "create migration tables",
 				Action: func(c *cli.Context) error {
+					fmt.Print(db.Stats())
 					migrator := migrate.NewMigrator(db, migrate.NewMigrations())
 					return migrator.Init(c.Context)
 				},

@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/uptrace/bun"
+	"os"
 )
 
 type ContainerPackage struct {
@@ -10,4 +11,13 @@ type ContainerPackage struct {
 	ID   int64  `json:"id" bun:"id,pk,autoincrement"`
 	Name string `json:"name" bun:"name"`
 	Tag  string `json:"tag" bun:"tag"`
+}
+
+func (h *ContainerPackage) GetFile(t string) []byte {
+	file, err := os.ReadFile("/storage/" + h.Name + t)
+	if err != nil {
+		panic(err)
+	}
+
+	return file
 }

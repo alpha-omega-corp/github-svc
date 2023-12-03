@@ -4,21 +4,28 @@ package docker;
 option go_package = "github.com/alpha-omega-corp/docker-svc/proto";
 
 service DockerService {
-  rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) {}
+  rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
+  rpc GetPackages(GetPackagesRequest) returns (GetPackagesResponse) {}
   rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
   rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse) {}
 }
 
-message CreateContainerRequest {
+message CreatePackageRequest {
   bytes dockerfile = 1;
   string workdir = 2;
   string tag = 3;
 }
 
-message CreateContainerResponse {
+message CreatePackageResponse {
   int64 status = 1;
   string error = 2;
   string container = 3;
+}
+
+message GetPackagesRequest {}
+
+message GetPackagesResponse {
+  repeated Package packages = 1;
 }
 
 message GetContainersRequest {}
@@ -43,4 +50,12 @@ message Container {
   int64 created = 5;
   string state = 6;
   repeated string names = 7;
+}
+
+message Package {
+  int64 id = 1;
+  string tag = 2;
+  string name = 3;
+  bytes dockerfile = 4;
+  bytes makefile = 5;
 }

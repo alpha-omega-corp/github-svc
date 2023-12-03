@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 
 services:
   docker-svc-db:
@@ -8,10 +8,10 @@ services:
     volumes:
       - 'pgdata:/bitnami/postgresql'
     environment:
-      - 'POSTGRESQL_USERNAME=root'
-      - 'POSTGRESQL_PASSWORD=root'
-      - 'POSTGRESQL_DATABASE=docker_svc'
-
+      - POSTGRESQL_USERNAME=root
+      - POSTGRESQL_PASSWORD=root
+      - POSTGRESQL_DATABASE=docker_svc
+      - POSTGRESQL_PORT_NUMBER=5433
 volumes:
   pgdata:
     driver: local

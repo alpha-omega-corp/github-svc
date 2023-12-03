@@ -22,7 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DockerServiceClient interface {
-	CreateContainer(ctx context.Context, in *CreateContainerRequest, opts ...grpc.CallOption) (*CreateContainerResponse, error)
+	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
+	GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error)
 	GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error)
 	GetContainerLogs(ctx context.Context, in *GetContainerLogsRequest, opts ...grpc.CallOption) (*GetContainerLogsResponse, error)
 }
@@ -35,9 +36,18 @@ func NewDockerServiceClient(cc grpc.ClientConnInterface) DockerServiceClient {
 	return &dockerServiceClient{cc}
 }
 
-func (c *dockerServiceClient) CreateContainer(ctx context.Context, in *CreateContainerRequest, opts ...grpc.CallOption) (*CreateContainerResponse, error) {
-	out := new(CreateContainerResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/CreateContainer", in, out, opts...)
+func (c *dockerServiceClient) CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error) {
+	out := new(CreatePackageResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/CreatePackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerServiceClient) GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error) {
+	out := new(GetPackagesResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackages", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +76,8 @@ func (c *dockerServiceClient) GetContainerLogs(ctx context.Context, in *GetConta
 // All implementations must embed UnimplementedDockerServiceServer
 // for forward compatibility
 type DockerServiceServer interface {
-	CreateContainer(context.Context, *CreateContainerRequest) (*CreateContainerResponse, error)
+	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
+	GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error)
 	GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error)
 	GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
@@ -76,8 +87,11 @@ type DockerServiceServer interface {
 type UnimplementedDockerServiceServer struct {
 }
 
-func (UnimplementedDockerServiceServer) CreateContainer(context.Context, *CreateContainerRequest) (*CreateContainerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateContainer not implemented")
+func (UnimplementedDockerServiceServer) CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePackage not implemented")
+}
+func (UnimplementedDockerServiceServer) GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackages not implemented")
 }
 func (UnimplementedDockerServiceServer) GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainers not implemented")
@@ -98,20 +112,38 @@ func RegisterDockerServiceServer(s grpc.ServiceRegistrar, srv DockerServiceServe
 	s.RegisterService(&DockerService_ServiceDesc, srv)
 }
 
-func _DockerService_CreateContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateContainerRequest)
+func _DockerService_CreatePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePackageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DockerServiceServer).CreateContainer(ctx, in)
+		return srv.(DockerServiceServer).CreatePackage(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.DockerService/CreateContainer",
+		FullMethod: "/docker.DockerService/CreatePackage",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).CreateContainer(ctx, req.(*CreateContainerRequest))
+		return srv.(DockerServiceServer).CreatePackage(ctx, req.(*CreatePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DockerService_GetPackages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).GetPackages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/GetPackages",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).GetPackages(ctx, req.(*GetPackagesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -160,8 +192,12 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DockerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateContainer",
-			Handler:    _DockerService_CreateContainer_Handler,
+			MethodName: "CreatePackage",
+			Handler:    _DockerService_CreatePackage_Handler,
+		},
+		{
+			MethodName: "GetPackages",
+			Handler:    _DockerService_GetPackages_Handler,
 		},
 		{
 			MethodName: "GetContainers",

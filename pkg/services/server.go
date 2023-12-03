@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"context"
+	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
 	"io"
@@ -67,15 +68,47 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 	}, nil
 }
 
-func (s *Server) CreateContainer(ctx context.Context, req *proto.CreateContainerRequest) (*proto.CreateContainerResponse, error) {
-	req.Dockerfile = bytes.Trim(req.Dockerfile, "\x00")
+func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
 
-	err := s.docker.Container().Create(req.Dockerfile, req.Workdir, req.Tag, ctx)
+	packageHandler := NewPackageHandler(s.db)
+	packages, err := packageHandler.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &proto.CreateContainerResponse{
+	var resSlice []*proto.Package
+	for _, pkg := range packages {
+		resSlice = append(resSlice, &proto.Package{
+			Id:         pkg.ID,
+			Tag:        pkg.Tag,
+			Name:       pkg.Name,
+			Dockerfile: pkg.GetFile("Dockerfile"),
+			Makefile:   pkg.GetFile("Makefile"),
+		})
+	}
+	return &proto.GetPackagesResponse{
+		Packages: resSlice,
+	}, nil
+}
+
+func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
+	req.Dockerfile = bytes.Trim(req.Dockerfile, "\x00")
+
+	err := s.docker.Container().CreatePackage(req.Dockerfile, req.Workdir, req.Tag, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pkg := new(models.ContainerPackage)
+	pkg.Name = req.Workdir
+	pkg.Tag = req.Tag
+
+	_, err = s.db.NewInsert().Model(pkg).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.CreatePackageResponse{
 		Status:    http.StatusCreated,
 		Container: "2",
 	}, nil

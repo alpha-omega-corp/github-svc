@@ -10,7 +10,7 @@ import (
 )
 
 type ContainerHandler interface {
-	Create(file []byte, workdir string, tag string, ctx context.Context) error
+	CreatePackage(file []byte, workdir string, tag string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -50,9 +50,10 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 	return logs, nil
 }
 
-func (h *containerHandler) Create(file []byte, workdir string, tag string, ctx context.Context) error {
+func (h *containerHandler) CreatePackage(file []byte, workdir string, tag string, ctx context.Context) error {
 	path := "storage/" + workdir + "/Dockerfile"
 
+	fmt.Print(path)
 	if err := os.MkdirAll("storage/"+workdir, os.ModePerm); err != nil {
 		return err
 	}
