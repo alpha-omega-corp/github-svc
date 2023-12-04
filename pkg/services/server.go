@@ -112,5 +112,18 @@ func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequ
 		Status:    http.StatusCreated,
 		Container: "2",
 	}, nil
+}
 
+func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
+	pkg := new(models.ContainerPackage)
+	pkg.ID = req.Id
+
+	_, err := s.db.NewDelete().Model(pkg).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.DeletePackageResponse{
+		Status: http.StatusOK,
+	}, nil
 }

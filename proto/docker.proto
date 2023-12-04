@@ -6,6 +6,7 @@ option go_package = "github.com/alpha-omega-corp/docker-svc/proto";
 service DockerService {
   rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
   rpc GetPackages(GetPackagesRequest) returns (GetPackagesResponse) {}
+  rpc DeletePackage(DeletePackageRequest) returns (DeletePackageResponse) {}
   rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
   rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse) {}
 }
@@ -26,6 +27,15 @@ message GetPackagesRequest {}
 
 message GetPackagesResponse {
   repeated Package packages = 1;
+}
+
+message DeletePackageRequest {
+  int64 id = 1;
+}
+
+message DeletePackageResponse {
+  int64 status = 1;
+  string error = 2;
 }
 
 message GetContainersRequest {}

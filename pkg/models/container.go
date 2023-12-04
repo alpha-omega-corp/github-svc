@@ -14,7 +14,7 @@ type ContainerPackage struct {
 }
 
 func (h *ContainerPackage) GetFile(t string) []byte {
-	file, err := os.ReadFile("/storage/" + h.Name + t)
+	file, err := os.ReadFile("storage/" + h.Name + "/" + t)
 	if err != nil {
 		panic(err)
 	}
