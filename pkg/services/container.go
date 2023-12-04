@@ -2,15 +2,13 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/uptrace/bun"
 	"io"
-	"os"
 )
 
 type ContainerHandler interface {
-	CreatePackage(file []byte, workdir string, tag string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -18,11 +16,13 @@ type ContainerHandler interface {
 type containerHandler struct {
 	ContainerHandler
 	client *client.Client
+	db     *bun.DB
 }
 
-func NewContainerHandler(c *client.Client) ContainerHandler {
+func NewContainerHandler(c *client.Client, db *bun.DB) ContainerHandler {
 	return &containerHandler{
 		client: c,
+		db:     db,
 	}
 }
 
@@ -48,64 +48,4 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 	}
 
 	return logs, nil
-}
-
-func (h *containerHandler) CreatePackage(file []byte, workdir string, tag string, ctx context.Context) error {
-	path := "storage/" + workdir + "/Dockerfile"
-
-	fmt.Print(path)
-	if err := os.MkdirAll("storage/"+workdir, os.ModePerm); err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(path, file, 0644); err != nil {
-		return err
-	}
-
-	go func() {
-		err := makeFile(workdir, tag)
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	return nil
-}
-
-func PadLeft(s string) string {
-	return fmt.Sprintf("%s"+s, "\t")
-}
-
-func makeFile(workdir string, tag string) error {
-	workDirPath := "storage/" + workdir
-	mFile, err := os.Create(workDirPath + "/Makefile")
-	if err != nil {
-		return err
-	}
-	defer func(mFile *os.File) {
-		err := mFile.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(mFile)
-
-	lines := []string{
-		"create:",
-		PadLeft("docker build -t alpha-omega-corp/" + workdir + ":" + tag + " ."),
-		"tag:",
-		PadLeft("docker tag alpha-omega-corp/" + workdir + ":" + tag + " alpha-omega-corp/" + workdir + ":" + tag),
-		"push:",
-		PadLeft("docker push alpha-omega-corp/" + workdir + ":" + tag),
-	}
-
-	for _, line := range lines {
-
-		_, err := mFile.WriteString(line + "\n")
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

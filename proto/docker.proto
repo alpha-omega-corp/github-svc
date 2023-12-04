@@ -23,10 +23,18 @@ message CreatePackageResponse {
   string container = 3;
 }
 
+message GetPackageRequest {
+  int64 id = 1;
+}
+
+message GetPackageResponse {
+  Package package = 1;
+}
+
 message GetPackagesRequest {}
 
 message GetPackagesResponse {
-  repeated Package packages = 1;
+  repeated SimplePackage packages = 1;
 }
 
 message DeletePackageRequest {
@@ -68,4 +76,10 @@ message Package {
   string name = 3;
   bytes dockerfile = 4;
   bytes makefile = 5;
+}
+
+message SimplePackage {
+  int64 id = 1;
+  string tag = 2;
+  string name = 3;
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/docker/docker/client"
+	"github.com/uptrace/bun"
 )
 
 type DockerHandler interface {
@@ -13,7 +14,7 @@ type dockerHandler struct {
 	ctHandler ContainerHandler
 }
 
-func NewDockerHandler() DockerHandler {
+func NewDockerHandler(db *bun.DB) DockerHandler {
 	c, err := client.NewClientWithOpts(
 		client.FromEnv, client.WithAPIVersionNegotiation())
 
@@ -29,7 +30,7 @@ func NewDockerHandler() DockerHandler {
 	}(c)
 
 	return &dockerHandler{
-		ctHandler: NewContainerHandler(c),
+		ctHandler: NewContainerHandler(c, db),
 	}
 }
 

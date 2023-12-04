@@ -15,13 +15,15 @@ type Server struct {
 	proto.UnimplementedDockerServiceServer
 
 	docker DockerHandler
+	pkg    PackageHandler
 	db     *bun.DB
 }
 
 func NewServer(db *bun.DB) *Server {
 	return &Server{
 		db:     db,
-		docker: NewDockerHandler(),
+		docker: NewDockerHandler(db),
+		pkg:    NewPackageHandler(db),
 	}
 }
 
@@ -69,21 +71,17 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 }
 
 func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
-
-	packageHandler := NewPackageHandler(s.db)
-	packages, err := packageHandler.GetAll(ctx)
+	packages, err := s.pkg.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var resSlice []*proto.Package
+	var resSlice []*proto.SimplePackage
 	for _, pkg := range packages {
-		resSlice = append(resSlice, &proto.Package{
-			Id:         pkg.ID,
-			Tag:        pkg.Tag,
-			Name:       pkg.Name,
-			Dockerfile: pkg.GetFile("Dockerfile"),
-			Makefile:   pkg.GetFile("Makefile"),
+		resSlice = append(resSlice, &proto.SimplePackage{
+			Id:   pkg.ID,
+			Tag:  pkg.Tag,
+			Name: pkg.Name,
 		})
 	}
 	return &proto.GetPackagesResponse{
@@ -91,10 +89,27 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 	}, nil
 }
 
+func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
+	pkg, err := s.pkg.GetOne(req.Id, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.GetPackageResponse{
+		Package: &proto.Package{
+			Id:         pkg.ID,
+			Tag:        pkg.Tag,
+			Name:       pkg.Name,
+			Dockerfile: pkg.GetFile("Dockerfile"),
+			Makefile:   pkg.GetFile("Makefile"),
+		},
+	}, nil
+}
+
 func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
 	req.Dockerfile = bytes.Trim(req.Dockerfile, "\x00")
 
-	err := s.docker.Container().CreatePackage(req.Dockerfile, req.Workdir, req.Tag, ctx)
+	err := s.pkg.Create(req.Dockerfile, req.Workdir, req.Tag)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +130,7 @@ func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequ
 }
 
 func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
-	pkg := new(models.ContainerPackage)
-	pkg.ID = req.Id
-
-	_, err := s.db.NewDelete().Model(pkg).Exec(ctx)
-	if err != nil {
+	if err := s.pkg.Delete(req.Id, ctx); err != nil {
 		return nil, err
 	}
 
