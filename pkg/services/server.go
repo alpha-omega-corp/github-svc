@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
 	"io"
@@ -16,6 +17,7 @@ type Server struct {
 
 	docker DockerHandler
 	pkg    PackageHandler
+	git    git.Handler
 	db     *bun.DB
 }
 
@@ -23,7 +25,7 @@ func NewServer(db *bun.DB) *Server {
 	return &Server{
 		db:     db,
 		docker: NewDockerHandler(db),
-		pkg:    NewPackageHandler(db),
+		pkg:    NewPackageHandler(db, git.NewHandler()),
 	}
 }
 
@@ -95,6 +97,11 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
+	gitPkg, err := s.git.Packages().Get(pkg.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	return &proto.GetPackageResponse{
 		Package: &proto.Package{
 			Id:         pkg.ID,
@@ -102,6 +109,18 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Name:       pkg.Name,
 			Dockerfile: pkg.GetFile("Dockerfile"),
 			Makefile:   pkg.GetFile("Makefile"),
+			Git: &proto.GitPackage{
+				Id:         gitPkg.Id,
+				Name:       gitPkg.Name,
+				Type:       gitPkg.Type,
+				Version:    gitPkg.Version,
+				Visibility: gitPkg.Visibility,
+				Url:        gitPkg.Url,
+				OwnerId:    gitPkg.Owner.Id,
+				OwnerName:  gitPkg.Owner.Name,
+				OwnerNode:  gitPkg.Owner.NodeId,
+				OwnerType:  gitPkg.Owner.Type,
+			},
 		},
 	}, nil
 }

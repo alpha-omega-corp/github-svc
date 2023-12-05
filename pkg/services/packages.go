@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
 	"github.com/uptrace/bun"
 	"os"
 )
@@ -18,12 +19,14 @@ type PackageHandler interface {
 
 type packageHandler struct {
 	PackageHandler
-	db *bun.DB
+	db  *bun.DB
+	git git.Handler
 }
 
-func NewPackageHandler(db *bun.DB) PackageHandler {
+func NewPackageHandler(db *bun.DB, git git.Handler) PackageHandler {
 	return &packageHandler{
-		db: db,
+		db:  db,
+		git: git,
 	}
 }
 
@@ -82,6 +85,15 @@ func (h *packageHandler) Delete(id int64, ctx context.Context) error {
 
 	_, err := h.db.NewDelete().Model(&models.ContainerPackage{}).Where("id = ?", id).Exec(ctx)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *packageHandler) Push(id int64, ctx context.Context) error {
+	pkg := new(models.ContainerPackage)
+	if err := h.db.NewSelect().Model(pkg).Where("id = ?", id).Scan(ctx); err != nil {
 		return err
 	}
 

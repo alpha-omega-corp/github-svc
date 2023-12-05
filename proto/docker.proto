@@ -77,10 +77,24 @@ message Package {
   string name = 3;
   bytes dockerfile = 4;
   bytes makefile = 5;
+  GitPackage git = 6;
 }
 
 message SimplePackage {
   int64 id = 1;
   string tag = 2;
   string name = 3;
+}
+
+message GitPackage {
+  int64 id = 1;
+  string name = 2;
+  string type = 3;
+  int64 version = 4;
+  string visibility = 5;
+  string url = 6;
+  int64 ownerId = 7;
+  string ownerName = 8;
+  string ownerNode = 9;
+  string ownerType = 10;
 }
