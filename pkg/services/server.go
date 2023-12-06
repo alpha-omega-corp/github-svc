@@ -25,8 +25,10 @@ func NewServer(db *bun.DB) *Server {
 	return &Server{
 		db:     db,
 		docker: NewDockerHandler(db),
-		pkg:    NewPackageHandler(db, git.NewHandler()),
+		pkg:    NewPackageHandler(db),
+		git:    git.NewHandler(),
 	}
+
 }
 
 func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequest) (*proto.GetContainersResponse, error) {
@@ -97,7 +99,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
-	gitPkg, err := s.git.Packages().Get(pkg.Name)
+	gitPkg, err := s.git.Packages().GetOne(pkg.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +156,21 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 	}
 
 	return &proto.DeletePackageResponse{
+		Status: http.StatusOK,
+	}, nil
+}
+
+func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
+	pkg := new(models.ContainerPackage)
+	if err := s.db.NewSelect().Model(&pkg).Where("id = ?", req.Id).Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := s.git.Packages().Push(pkg); err != nil {
+		return nil, err
+	}
+
+	return &proto.PushPackageResponse{
 		Status: http.StatusOK,
 	}, nil
 }

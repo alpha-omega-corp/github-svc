@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
 	"github.com/uptrace/bun"
 	"os"
 )
@@ -19,21 +18,19 @@ type PackageHandler interface {
 
 type packageHandler struct {
 	PackageHandler
-	db  *bun.DB
-	git git.Handler
+	db *bun.DB
 }
 
-func NewPackageHandler(db *bun.DB, git git.Handler) PackageHandler {
+func NewPackageHandler(db *bun.DB) PackageHandler {
 	return &packageHandler{
-		db:  db,
-		git: git,
+		db: db,
 	}
 }
 
 func (h *packageHandler) Create(file []byte, workdir string, tag string) error {
 	path := "storage/" + workdir + "/Dockerfile"
 
-	fmt.Print(path)
+	fmt.Print(file)
 	if err := os.MkdirAll("storage/"+workdir, os.ModePerm); err != nil {
 		return err
 	}
