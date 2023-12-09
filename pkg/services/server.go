@@ -1,9 +1,7 @@
 package services
 
 import (
-	"bytes"
 	"context"
-	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
@@ -28,7 +26,6 @@ func NewServer(db *bun.DB) *Server {
 		pkg:    NewPackageHandler(db),
 		git:    git.NewHandler(),
 	}
-
 }
 
 func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequest) (*proto.GetContainersResponse, error) {
@@ -109,8 +106,8 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Id:         pkg.ID,
 			Tag:        pkg.Tag,
 			Name:       pkg.Name,
-			Dockerfile: pkg.GetFile("Dockerfile"),
-			Makefile:   pkg.GetFile("Makefile"),
+			Dockerfile: pkg.Dockerfile,
+			Makefile:   pkg.Makefile,
 			Git: &proto.GitPackage{
 				Id:         gitPkg.Id,
 				Name:       gitPkg.Name,
@@ -128,25 +125,13 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 }
 
 func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
-	req.Dockerfile = bytes.Trim(req.Dockerfile, "\x00")
 
-	err := s.pkg.Create(req.Dockerfile, req.Workdir, req.Tag)
-	if err != nil {
-		return nil, err
-	}
-
-	pkg := new(models.ContainerPackage)
-	pkg.Name = req.Workdir
-	pkg.Tag = req.Tag
-
-	_, err = s.db.NewInsert().Model(pkg).Exec(ctx)
-	if err != nil {
+	if err := s.pkg.Create(req.Dockerfile, req.Workdir, req.Tag, ctx); err != nil {
 		return nil, err
 	}
 
 	return &proto.CreatePackageResponse{
-		Status:    http.StatusCreated,
-		Container: "2",
+		Status: http.StatusCreated,
 	}, nil
 }
 
@@ -161,12 +146,7 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 }
 
 func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
-	pkg := new(models.ContainerPackage)
-	if err := s.db.NewSelect().Model(&pkg).Where("id = ?", req.Id).Scan(ctx); err != nil {
-		return nil, err
-	}
-
-	if err := s.git.Packages().Push(pkg); err != nil {
+	if err := s.pkg.Push(req.Id, ctx); err != nil {
 		return nil, err
 	}
 

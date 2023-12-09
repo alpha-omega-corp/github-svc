@@ -2,51 +2,58 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/storage"
 	"github.com/uptrace/bun"
 	"os"
 )
 
 type PackageHandler interface {
-	Create(file []byte, workdir string, tag string) error
+	Create(file []byte, name string, tag string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]models.ContainerPackage, error)
 	GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error)
 	Delete(id int64, ctx context.Context) error
+	Push(id int64, ctx context.Context) error
 	GetByName(name string, ctx context.Context) models.ContainerPackage
 }
 
 type packageHandler struct {
 	PackageHandler
-	db *bun.DB
+	db    *bun.DB
+	store storage.Handler
 }
 
 func NewPackageHandler(db *bun.DB) PackageHandler {
 	return &packageHandler{
-		db: db,
+		db:    db,
+		store: storage.NewHandler(),
 	}
 }
 
-func (h *packageHandler) Create(file []byte, workdir string, tag string) error {
-	path := "storage/" + workdir + "/Dockerfile"
+func (h *packageHandler) Create(file []byte, name string, tag string, ctx context.Context) error {
+	pkg := new(models.ContainerPackage)
+	pkg.Name = name
+	pkg.Tag = tag
 
-	fmt.Print(file)
-	if err := os.MkdirAll("storage/"+workdir, os.ModePerm); err != nil {
+	_, err := h.db.NewInsert().Model(pkg).Exec(ctx)
+	if err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(path, file, 0644); err != nil {
-		return err
+	return h.store.CreatePackage(pkg, file)
+}
+
+func (h *packageHandler) GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error) {
+	var pkg models.ContainerPackage
+	err := h.db.NewSelect().Model(&pkg).Where("id = ?", id).Scan(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	go func() {
-		err := makeFile(workdir, tag)
-		if err != nil {
-			panic(err)
-		}
-	}()
+	pkg.Dockerfile = h.store.GetPackageFile(pkg.Name + "/Dockerfile")
+	pkg.Makefile = h.store.GetPackageFile(pkg.Name + "/Makefile")
 
-	return nil
+	return &pkg, nil
 }
 
 func (h *packageHandler) GetAll(ctx context.Context) ([]models.ContainerPackage, error) {
@@ -57,16 +64,6 @@ func (h *packageHandler) GetAll(ctx context.Context) ([]models.ContainerPackage,
 	}
 
 	return packages, nil
-}
-
-func (h *packageHandler) GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error) {
-	var pkg models.ContainerPackage
-	err := h.db.NewSelect().Model(&pkg).Where("id = ?", id).Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pkg, nil
 }
 
 func (h *packageHandler) Delete(id int64, ctx context.Context) error {
@@ -94,6 +91,10 @@ func (h *packageHandler) Push(id int64, ctx context.Context) error {
 		return err
 	}
 
+	if err := h.store.PushPackage(pkg.Name); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -105,42 +106,4 @@ func (h *packageHandler) GetByName(name string, ctx context.Context) models.Cont
 	}
 
 	return pkg
-}
-
-func makeFile(workdir string, tag string) error {
-	workDirPath := "storage/" + workdir
-	mFile, err := os.Create(workDirPath + "/Makefile")
-	if err != nil {
-		return err
-	}
-	defer func(mFile *os.File) {
-		err := mFile.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(mFile)
-
-	lines := []string{
-		"create:",
-		padLeft("docker build -t alpha-omega-corp/" + workdir + ":" + tag + " ."),
-		"tag:",
-		padLeft("docker tag alpha-omega-corp/" + workdir + ":" + tag + " alpha-omega-corp/" + workdir + ":" + tag),
-		"push:",
-		padLeft("docker push alpha-omega-corp/" + workdir + ":" + tag),
-	}
-
-	for _, line := range lines {
-
-		_, err := mFile.WriteString(line + "\n")
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func padLeft(s string) string {
-	return fmt.Sprintf("%s"+s, "\t")
 }

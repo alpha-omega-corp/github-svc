@@ -2,16 +2,15 @@ package git
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/docker-svc/pkg/types"
 	"github.com/google/go-github/v56/github"
 	"io"
 	"net/http"
 )
 
+var orgUrl = "https://api.github.com/orgs/alpha-omega-corp/"
+
 type PackageHandler interface {
-	Push(cp *models.ContainerPackage) error
 	GetOne(pkgName string) (*types.GitPackage, error)
 }
 
@@ -28,20 +27,9 @@ func NewPackageHandler(c *github.Client) PackageHandler {
 	}
 }
 
-func (h *packageHandler) Push(cp *models.ContainerPackage) error {
-	res, err := h.ClientQuery("packages/container/" + cp.Name)
-	if err != nil {
-		return err
-	}
-
-	fmt.Print(res)
-
-	return nil
-}
-
 func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
-	httpClient := h.client.Client()
-	res, err := httpClient.Get("https://api.github.com/orgs/alpha-omega-corp/packages/container/" + pkgName)
+
+	res, err := h.queryGet("packages/container/" + pkgName)
 	if err != nil {
 		panic(err)
 	}
@@ -66,8 +54,11 @@ func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
 	return pkg, nil
 }
 
-func (h *packageHandler) ClientQuery(path string) (res *http.Response, err error) {
-	client := h.rawClient
+func (h *packageHandler) queryGet(path string) (*http.Response, error) {
+	res, err := h.client.Client().Get(orgUrl + path)
+	if err != nil {
+		return nil, err
+	}
 
-	return client.Get("https://api.github.com/orgs/alpha-omega-corp/" + path)
+	return res, nil
 }

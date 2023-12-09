@@ -3,9 +3,10 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	HOST string `mapstruct:"host"`
-	DSN  string `mapstruct:"dsn"`
-	GIT  string `mapstruct:"git"`
+	HOST    string `mapstruct:"host"`
+	DSN     string `mapstruct:"dsn"`
+	GIT     string `mapstruct:"git"`
+	STORAGE string `mapstruct:"storage"`
 }
 
 func LoadConfig() (config Config, err error) {
