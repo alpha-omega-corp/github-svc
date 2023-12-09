@@ -1,20 +1,20 @@
-package services
+package docker
 
 import (
 	"github.com/docker/docker/client"
 	"github.com/uptrace/bun"
 )
 
-type DockerHandler interface {
+type Handler interface {
 	Container() ContainerHandler
 }
 
 type dockerHandler struct {
-	DockerHandler
+	Handler
 	ctHandler ContainerHandler
 }
 
-func NewDockerHandler(db *bun.DB) DockerHandler {
+func NewHandler(db *bun.DB) Handler {
 	c, err := client.NewClientWithOpts(
 		client.FromEnv, client.WithAPIVersionNegotiation())
 

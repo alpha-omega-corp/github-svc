@@ -1,7 +1,9 @@
-package services
+package docker
 
 import (
 	"context"
+	"fmt"
+	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/uptrace/bun"
@@ -9,6 +11,7 @@ import (
 )
 
 type ContainerHandler interface {
+	Create(img string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -16,12 +19,19 @@ type ContainerHandler interface {
 type containerHandler struct {
 	ContainerHandler
 	client *client.Client
+	config config.Config
 	db     *bun.DB
 }
 
-func NewContainerHandler(c *client.Client, db *bun.DB) ContainerHandler {
+func NewContainerHandler(cli *client.Client, db *bun.DB) ContainerHandler {
+	c, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	return &containerHandler{
-		client: c,
+		client: cli,
+		config: c,
 		db:     db,
 	}
 }
@@ -48,4 +58,15 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 	}
 
 	return logs, nil
+}
+
+func (h *containerHandler) Create(orgImage string, ctx context.Context) error {
+	out, err := h.client.ImagePull(ctx, h.config.GHCR+orgImage, types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(out)
+
+	return nil
 }

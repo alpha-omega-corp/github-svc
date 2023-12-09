@@ -27,6 +27,7 @@ type DockerServiceClient interface {
 	GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error)
 	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
 	PushPackage(ctx context.Context, in *PushPackageRequest, opts ...grpc.CallOption) (*PushPackageResponse, error)
+	ContainerPackage(ctx context.Context, in *ContainerPackageRequest, opts ...grpc.CallOption) (*ContainerPackageResponse, error)
 	GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error)
 	GetContainerLogs(ctx context.Context, in *GetContainerLogsRequest, opts ...grpc.CallOption) (*GetContainerLogsResponse, error)
 }
@@ -84,6 +85,15 @@ func (c *dockerServiceClient) PushPackage(ctx context.Context, in *PushPackageRe
 	return out, nil
 }
 
+func (c *dockerServiceClient) ContainerPackage(ctx context.Context, in *ContainerPackageRequest, opts ...grpc.CallOption) (*ContainerPackageResponse, error) {
+	out := new(ContainerPackageResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/ContainerPackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerServiceClient) GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error) {
 	out := new(GetContainersResponse)
 	err := c.cc.Invoke(ctx, "/docker.DockerService/GetContainers", in, out, opts...)
@@ -111,6 +121,7 @@ type DockerServiceServer interface {
 	GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error)
 	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
 	PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error)
+	ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error)
 	GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error)
 	GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
@@ -134,6 +145,9 @@ func (UnimplementedDockerServiceServer) DeletePackage(context.Context, *DeletePa
 }
 func (UnimplementedDockerServiceServer) PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushPackage not implemented")
+}
+func (UnimplementedDockerServiceServer) ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ContainerPackage not implemented")
 }
 func (UnimplementedDockerServiceServer) GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainers not implemented")
@@ -244,6 +258,24 @@ func _DockerService_PushPackage_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_ContainerPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContainerPackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).ContainerPackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/ContainerPackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).ContainerPackage(ctx, req.(*ContainerPackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerService_GetContainers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetContainersRequest)
 	if err := dec(in); err != nil {
@@ -306,6 +338,10 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PushPackage",
 			Handler:    _DockerService_PushPackage_Handler,
+		},
+		{
+			MethodName: "ContainerPackage",
+			Handler:    _DockerService_ContainerPackage_Handler,
 		},
 		{
 			MethodName: "GetContainers",

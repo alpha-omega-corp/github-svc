@@ -9,8 +9,18 @@ service DockerService {
   rpc GetPackage(GetPackageRequest) returns (GetPackageResponse) {}
   rpc DeletePackage(DeletePackageRequest) returns (DeletePackageResponse) {}
   rpc PushPackage(PushPackageRequest) returns (PushPackageResponse) {}
+  rpc ContainerPackage(ContainerPackageRequest) returns (ContainerPackageResponse) {}
   rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
   rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse) {}
+}
+
+message ContainerPackageRequest {
+  int64 id = 1;
+}
+
+message ContainerPackageResponse {
+  int64 status = 1;
+  int64 containerId = 2;
 }
 
 message PushPackageRequest {

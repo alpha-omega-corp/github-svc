@@ -7,6 +7,7 @@ type Config struct {
 	DSN     string `mapstruct:"dsn"`
 	GIT     string `mapstruct:"git"`
 	STORAGE string `mapstruct:"storage"`
+	GHCR    string `mapstruct:"ghcr"`
 }
 
 func LoadConfig() (config Config, err error) {

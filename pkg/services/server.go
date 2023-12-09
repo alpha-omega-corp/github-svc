@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
 	"io"
@@ -13,18 +13,14 @@ import (
 type Server struct {
 	proto.UnimplementedDockerServiceServer
 
-	docker DockerHandler
+	docker docker.Handler
 	pkg    PackageHandler
-	git    git.Handler
-	db     *bun.DB
 }
 
 func NewServer(db *bun.DB) *Server {
 	return &Server{
-		db:     db,
-		docker: NewDockerHandler(db),
+		docker: docker.NewHandler(db),
 		pkg:    NewPackageHandler(db),
-		git:    git.NewHandler(),
 	}
 }
 
@@ -96,11 +92,6 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
-	gitPkg, err := s.git.Packages().GetOne(pkg.Name)
-	if err != nil {
-		return nil, err
-	}
-
 	return &proto.GetPackageResponse{
 		Package: &proto.Package{
 			Id:         pkg.ID,
@@ -109,23 +100,22 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Dockerfile: pkg.Dockerfile,
 			Makefile:   pkg.Makefile,
 			Git: &proto.GitPackage{
-				Id:         gitPkg.Id,
-				Name:       gitPkg.Name,
-				Type:       gitPkg.Type,
-				Version:    gitPkg.Version,
-				Visibility: gitPkg.Visibility,
-				Url:        gitPkg.Url,
-				OwnerId:    gitPkg.Owner.Id,
-				OwnerName:  gitPkg.Owner.Name,
-				OwnerNode:  gitPkg.Owner.NodeId,
-				OwnerType:  gitPkg.Owner.Type,
+				Id:         pkg.Git.Id,
+				Name:       pkg.Git.Name,
+				Type:       pkg.Git.Type,
+				Version:    pkg.Git.Version,
+				Visibility: pkg.Git.Visibility,
+				Url:        pkg.Git.Url,
+				OwnerId:    pkg.Git.Owner.Id,
+				OwnerName:  pkg.Git.Owner.Name,
+				OwnerNode:  pkg.Git.Owner.NodeId,
+				OwnerType:  pkg.Git.Owner.Type,
 			},
 		},
 	}, nil
 }
 
 func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
-
 	if err := s.pkg.Create(req.Dockerfile, req.Workdir, req.Tag, ctx); err != nil {
 		return nil, err
 	}
@@ -151,6 +141,16 @@ func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest)
 	}
 
 	return &proto.PushPackageResponse{
+		Status: http.StatusOK,
+	}, nil
+}
+
+func (s *Server) ContainerPackage(ctx context.Context, req *proto.ContainerPackageRequest) (*proto.ContainerPackageResponse, error) {
+	if err := s.pkg.Container(req.Id, ctx); err != nil {
+		return nil, err
+	}
+
+	return &proto.ContainerPackageResponse{
 		Status: http.StatusOK,
 	}, nil
 }
