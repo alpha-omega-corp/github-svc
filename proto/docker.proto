@@ -96,6 +96,8 @@ message Package {
   bytes dockerfile = 4;
   bytes makefile = 5;
   GitPackage git = 6;
+  bool pushed = 7;
+  string imageName = 8;
 }
 
 message SimplePackage {

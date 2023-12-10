@@ -73,11 +73,9 @@ func (h *storageHandler) PushPackage(name string) error {
 	if err := runMake(name, "create"); err != nil {
 		return err
 	}
-
 	if err := runMake(name, "tag"); err != nil {
 		return err
 	}
-
 	if err := runMake(name, "push"); err != nil {
 		return err
 	}

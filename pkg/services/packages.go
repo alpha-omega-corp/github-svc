@@ -104,6 +104,13 @@ func (h *packageHandler) Push(id int64, ctx context.Context) error {
 		return err
 	}
 
+	pkg.Pushed = true
+	pkg.ImageName = imageName(pkg)
+	_, err := h.db.NewUpdate().Model(pkg).Where("id = ?", id).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -114,4 +121,8 @@ func (h *packageHandler) Container(id int64, ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func imageName(pkg *models.ContainerPackage) string {
+	return "ghcr.io/alpha-omega-corp/" + pkg.Name + ":" + pkg.Tag
 }

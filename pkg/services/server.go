@@ -99,6 +99,8 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Name:       pkg.Name,
 			Dockerfile: pkg.Dockerfile,
 			Makefile:   pkg.Makefile,
+			Pushed:     pkg.Pushed,
+			ImageName:  pkg.ImageName,
 			Git: &proto.GitPackage{
 				Id:         pkg.Git.Id,
 				Name:       pkg.Git.Name,
