@@ -1,4 +1,5 @@
 host: localhost:50052
 dsn: postgres://root:root@localhost:5433/docker_svc
 storage: pkg/services/storage/embed/
-git: 1234567890
+ghcr: ghcr.io/alpha-omega-corp/
+git: secret
