@@ -13,7 +13,6 @@ type ContainerPackage struct {
 	Name       string            `json:"name" bun:"name"`
 	Tag        string            `json:"tag" bun:"tag"`
 	Pushed     bool              `json:"pushed" bun:"pushed"`
-	ImageName  string            `json:"image" bun:"image"`
 	Dockerfile []byte            `bun:"-"`
 	Makefile   []byte            `bun:"-"`
 	Git        *types.GitPackage `bun:"-"`

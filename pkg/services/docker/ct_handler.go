@@ -2,16 +2,19 @@ package docker
 
 import (
 	"context"
-	"fmt"
+	"encoding/base64"
+	"encoding/json"
 	"github.com/alpha-omega-corp/docker-svc/pkg/config"
+	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/uptrace/bun"
 	"io"
 )
 
 type ContainerHandler interface {
-	Create(img string, ctx context.Context) error
+	CreateFrom(pkg *models.ContainerPackage, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -60,13 +63,46 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 	return logs, nil
 }
 
-func (h *containerHandler) Create(orgImage string, ctx context.Context) error {
-	out, err := h.client.ImagePull(ctx, h.config.GHCR+orgImage, types.ImagePullOptions{})
+func (h *containerHandler) PullImage(imgName string, ctx context.Context) error {
+	authConfig := types.AuthConfig{
+		Username: "packages",
+		Password: h.config.GIT,
+	}
+
+	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {
 		return err
 	}
 
-	fmt.Print(out)
+	authString := base64.URLEncoding.EncodeToString(encodedJSON)
+	_, err = h.client.ImagePull(ctx, imgName, types.ImagePullOptions{RegistryAuth: authString})
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctx context.Context) error {
+	imgName := h.imageName(pkg)
+	if err := h.PullImage(imgName, ctx); err != nil {
+		return err
+	}
+
+	resp, err := h.client.ContainerCreate(ctx, &container.Config{
+		Image: imgName,
+	}, nil, nil, nil, pkg.Name)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := h.client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
+func (h *containerHandler) imageName(pkg *models.ContainerPackage) string {
+	return h.config.GHCR + pkg.Name + ":" + pkg.Tag
 }

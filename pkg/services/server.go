@@ -76,9 +76,10 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 	var resSlice []*proto.SimplePackage
 	for _, pkg := range packages {
 		resSlice = append(resSlice, &proto.SimplePackage{
-			Id:   pkg.ID,
-			Tag:  pkg.Tag,
-			Name: pkg.Name,
+			Id:     pkg.ID,
+			Tag:    pkg.Tag,
+			Name:   pkg.Name,
+			Synced: pkg.Pushed,
 		})
 	}
 	return &proto.GetPackagesResponse{
@@ -100,7 +101,6 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Dockerfile: pkg.Dockerfile,
 			Makefile:   pkg.Makefile,
 			Pushed:     pkg.Pushed,
-			ImageName:  pkg.ImageName,
 			Git: &proto.GitPackage{
 				Id:         pkg.Git.Id,
 				Name:       pkg.Git.Name,
@@ -148,7 +148,7 @@ func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest)
 }
 
 func (s *Server) ContainerPackage(ctx context.Context, req *proto.ContainerPackageRequest) (*proto.ContainerPackageResponse, error) {
-	if err := s.pkg.Container(req.Id, ctx); err != nil {
+	if err := s.pkg.CreateContainer(req.Id, ctx); err != nil {
 		return nil, err
 	}
 
