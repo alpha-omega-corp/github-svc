@@ -111,6 +111,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 				Version:    pkg.Git.Version,
 				Visibility: pkg.Git.Visibility,
 				Url:        pkg.Git.Url,
+				HtmlUrl:    pkg.Git.HtmlUrl,
 				OwnerId:    pkg.Git.Owner.Id,
 				OwnerName:  pkg.Git.Owner.Name,
 				OwnerNode:  pkg.Git.Owner.NodeId,

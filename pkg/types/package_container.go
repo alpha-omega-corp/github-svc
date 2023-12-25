@@ -7,6 +7,7 @@ type GitPackage struct {
 	Version    int64  `json:"version_count"`
 	Visibility string `json:"visibility"`
 	Url        string `json:"url"`
+	HtmlUrl    string `json:"html_url"`
 
 	Owner struct {
 		Id     int64  `json:"id"`

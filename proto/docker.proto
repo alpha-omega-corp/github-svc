@@ -115,8 +115,9 @@ message GitPackage {
   int64 version = 4;
   string visibility = 5;
   string url = 6;
-  int64 ownerId = 7;
-  string ownerName = 8;
-  string ownerNode = 9;
-  string ownerType = 10;
+  string htmlUrl = 7;
+  int64 ownerId = 8;
+  string ownerName = 9;
+  string ownerNode = 10;
+  string ownerType = 11;
 }
