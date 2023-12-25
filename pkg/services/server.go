@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -79,9 +81,10 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 			Id:     pkg.ID,
 			Tag:    pkg.Tag,
 			Name:   pkg.Name,
-			Synced: pkg.Pushed,
+			Synced: strconv.FormatBool(pkg.Pushed),
 		})
 	}
+	fmt.Print(resSlice)
 	return &proto.GetPackagesResponse{
 		Packages: resSlice,
 	}, nil

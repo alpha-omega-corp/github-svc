@@ -12,7 +12,7 @@ type ContainerPackage struct {
 	ID         int64             `json:"id" bun:"id,pk,autoincrement"`
 	Name       string            `json:"name" bun:"name"`
 	Tag        string            `json:"tag" bun:"tag"`
-	Pushed     bool              `json:"pushed" bun:"pushed"`
+	Pushed     bool              `bun:"pushed"`
 	Dockerfile []byte            `bun:"-"`
 	Makefile   []byte            `bun:"-"`
 	Git        *types.GitPackage `bun:"-"`

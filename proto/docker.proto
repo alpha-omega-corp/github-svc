@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package docker;
 option go_package = "github.com/alpha-omega-corp/docker-svc/proto";
+import "google/protobuf/wrappers.proto";
 
 service DockerService {
   rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
@@ -102,9 +103,9 @@ message Package {
 
 message SimplePackage {
   int64 id = 1;
-  string tag = 2;
-  string name = 3;
-  bool synced = 4;
+  string synced = 2;
+  string tag = 3;
+  string name = 4;
 }
 
 message GitPackage {
