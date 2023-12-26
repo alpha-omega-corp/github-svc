@@ -150,7 +150,7 @@ func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest)
 }
 
 func (s *Server) ContainerPackage(ctx context.Context, req *proto.ContainerPackageRequest) (*proto.ContainerPackageResponse, error) {
-	if err := s.pkg.CreateContainer(req.Id, ctx); err != nil {
+	if err := s.pkg.CreateContainer(req.Id, req.Name, ctx); err != nil {
 		return nil, err
 	}
 

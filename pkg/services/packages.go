@@ -16,7 +16,7 @@ type PackageHandler interface {
 	GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error)
 	Delete(id int64, ctx context.Context) error
 	Push(id int64, ctx context.Context) error
-	CreateContainer(id int64, ctx context.Context) error
+	CreateContainer(id int64, ctName string, ctx context.Context) error
 }
 
 type packageHandler struct {
@@ -119,13 +119,13 @@ func (h *packageHandler) Push(id int64, ctx context.Context) error {
 	return nil
 }
 
-func (h *packageHandler) CreateContainer(id int64, ctx context.Context) error {
+func (h *packageHandler) CreateContainer(id int64, ctName string, ctx context.Context) error {
 	pkg := new(models.ContainerPackage)
 	if err := h.db.NewSelect().Model(pkg).Where("id = ?", id).Scan(ctx); err != nil {
 		return err
 	}
 
-	if err := h.docker.Container().CreateFrom(pkg, ctx); err != nil {
+	if err := h.docker.Container().CreateFrom(pkg, ctName, ctx); err != nil {
 		return err
 	}
 

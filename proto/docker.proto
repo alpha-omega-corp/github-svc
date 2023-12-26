@@ -17,6 +17,7 @@ service DockerService {
 
 message ContainerPackageRequest {
   int64 id = 1;
+  string name = 2;
 }
 
 message ContainerPackageResponse {

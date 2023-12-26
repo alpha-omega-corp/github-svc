@@ -14,7 +14,7 @@ import (
 )
 
 type ContainerHandler interface {
-	CreateFrom(pkg *models.ContainerPackage, ctx context.Context) error
+	CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -83,7 +83,7 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 	return nil
 }
 
-func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctx context.Context) error {
+func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error {
 	imgName := h.imageName(pkg)
 	if err := h.PullImage(imgName, ctx); err != nil {
 		return err
@@ -91,7 +91,7 @@ func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctx context.
 
 	resp, err := h.client.ContainerCreate(ctx, &container.Config{
 		Image: imgName,
-	}, nil, nil, nil, pkg.Name)
+	}, nil, nil, nil, ctName)
 	if err != nil {
 		panic(err)
 	}
