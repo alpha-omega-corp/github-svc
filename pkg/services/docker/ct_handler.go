@@ -18,6 +18,7 @@ type ContainerHandler interface {
 	CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetAllFrom(pkg *models.ContainerPackage, ctx context.Context) ([]types.Container, error)
+	Delete(containerId string, ctx context.Context) error
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
 
@@ -39,6 +40,11 @@ func NewContainerHandler(cli *client.Client, db *bun.DB) ContainerHandler {
 		config: c,
 		db:     db,
 	}
+}
+
+func (h *containerHandler) Delete(containerId string, ctx context.Context) error {
+	return h.client.ContainerRemove(ctx, containerId, types.ContainerRemoveOptions{})
+
 }
 
 func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error) {

@@ -88,6 +88,16 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 	}, nil
 }
 
+func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainerRequest) (*proto.DeleteContainerResponse, error) {
+	if err := s.docker.Container().Delete(req.ContainerId, ctx); err != nil {
+		return nil, err
+	}
+
+	return &proto.DeleteContainerResponse{
+		Status: http.StatusOK,
+	}, nil
+}
+
 func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
 	pkg, err := s.pkg.GetOne(req.Id, ctx)
 	if err != nil {

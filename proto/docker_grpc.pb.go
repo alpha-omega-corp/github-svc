@@ -28,6 +28,7 @@ type DockerServiceClient interface {
 	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
 	PushPackage(ctx context.Context, in *PushPackageRequest, opts ...grpc.CallOption) (*PushPackageResponse, error)
 	ContainerPackage(ctx context.Context, in *ContainerPackageRequest, opts ...grpc.CallOption) (*ContainerPackageResponse, error)
+	DeleteContainer(ctx context.Context, in *DeleteContainerRequest, opts ...grpc.CallOption) (*DeleteContainerResponse, error)
 	GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error)
 	GetContainerLogs(ctx context.Context, in *GetContainerLogsRequest, opts ...grpc.CallOption) (*GetContainerLogsResponse, error)
 }
@@ -94,6 +95,15 @@ func (c *dockerServiceClient) ContainerPackage(ctx context.Context, in *Containe
 	return out, nil
 }
 
+func (c *dockerServiceClient) DeleteContainer(ctx context.Context, in *DeleteContainerRequest, opts ...grpc.CallOption) (*DeleteContainerResponse, error) {
+	out := new(DeleteContainerResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/DeleteContainer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerServiceClient) GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error) {
 	out := new(GetContainersResponse)
 	err := c.cc.Invoke(ctx, "/docker.DockerService/GetContainers", in, out, opts...)
@@ -122,6 +132,7 @@ type DockerServiceServer interface {
 	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
 	PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error)
 	ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error)
+	DeleteContainer(context.Context, *DeleteContainerRequest) (*DeleteContainerResponse, error)
 	GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error)
 	GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
@@ -148,6 +159,9 @@ func (UnimplementedDockerServiceServer) PushPackage(context.Context, *PushPackag
 }
 func (UnimplementedDockerServiceServer) ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ContainerPackage not implemented")
+}
+func (UnimplementedDockerServiceServer) DeleteContainer(context.Context, *DeleteContainerRequest) (*DeleteContainerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteContainer not implemented")
 }
 func (UnimplementedDockerServiceServer) GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainers not implemented")
@@ -276,6 +290,24 @@ func _DockerService_ContainerPackage_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_DeleteContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteContainerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).DeleteContainer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/DeleteContainer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).DeleteContainer(ctx, req.(*DeleteContainerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerService_GetContainers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetContainersRequest)
 	if err := dec(in); err != nil {
@@ -342,6 +374,10 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ContainerPackage",
 			Handler:    _DockerService_ContainerPackage_Handler,
+		},
+		{
+			MethodName: "DeleteContainer",
+			Handler:    _DockerService_DeleteContainer_Handler,
 		},
 		{
 			MethodName: "GetContainers",

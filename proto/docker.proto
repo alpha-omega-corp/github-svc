@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package docker;
 option go_package = "github.com/alpha-omega-corp/docker-svc/proto";
-import "google/protobuf/wrappers.proto";
 
 service DockerService {
   rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
@@ -11,8 +10,17 @@ service DockerService {
   rpc DeletePackage(DeletePackageRequest) returns (DeletePackageResponse) {}
   rpc PushPackage(PushPackageRequest) returns (PushPackageResponse) {}
   rpc ContainerPackage(ContainerPackageRequest) returns (ContainerPackageResponse) {}
+  rpc DeleteContainer(DeleteContainerRequest) returns (DeleteContainerResponse) {}
   rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
   rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse) {}
+}
+
+message DeleteContainerRequest {
+  string containerId = 1;
+}
+
+message DeleteContainerResponse {
+  int64 status = 1;
 }
 
 message ContainerPackageRequest {
