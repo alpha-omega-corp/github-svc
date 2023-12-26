@@ -8,7 +8,6 @@ import (
 	"github.com/uptrace/bun"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -81,7 +80,7 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 			Id:     pkg.ID,
 			Tag:    pkg.Tag,
 			Name:   pkg.Name,
-			Synced: strconv.FormatBool(pkg.Pushed),
+			Synced: pkg.Pushed,
 		})
 	}
 	fmt.Print(resSlice)
@@ -103,7 +102,6 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Name:       pkg.Name,
 			Dockerfile: pkg.Dockerfile,
 			Makefile:   pkg.Makefile,
-			Pushed:     pkg.Pushed,
 			Git: &proto.GitPackage{
 				Id:         pkg.Git.Id,
 				Name:       pkg.Git.Name,

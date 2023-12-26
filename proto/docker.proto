@@ -97,13 +97,13 @@ message Package {
   bytes dockerfile = 4;
   bytes makefile = 5;
   GitPackage git = 6;
-  bool pushed = 7;
+  bool synced = 7;
   string imageName = 8;
 }
 
 message SimplePackage {
   int64 id = 1;
-  string synced = 2;
+  bool synced = 2;
   string tag = 3;
   string name = 4;
 }
