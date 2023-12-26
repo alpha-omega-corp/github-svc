@@ -66,6 +66,12 @@ func (h *packageHandler) GetOne(id int64, ctx context.Context) (*models.Containe
 	pkg.Makefile = h.store.GetPackageFile(pkg.Name + "/Makefile")
 	pkg.Git = gitPkg
 
+	res, err := h.docker.Container().GetAllFrom(&pkg, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pkg.Containers = res
 	return &pkg, nil
 }
 

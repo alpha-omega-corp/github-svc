@@ -8,6 +8,7 @@ import (
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/uptrace/bun"
 	"io"
@@ -16,6 +17,7 @@ import (
 type ContainerHandler interface {
 	CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]types.Container, error)
+	GetAllFrom(pkg *models.ContainerPackage, ctx context.Context) ([]types.Container, error)
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
 
@@ -81,6 +83,11 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 	}
 
 	return nil
+}
+
+func (h *containerHandler) GetAllFrom(pkg *models.ContainerPackage, ctx context.Context) ([]types.Container, error) {
+	f := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(pkg)})
+	return h.client.ContainerList(ctx, types.ContainerListOptions{Filters: f})
 }
 
 func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error {

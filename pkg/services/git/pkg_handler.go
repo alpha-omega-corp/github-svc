@@ -2,7 +2,6 @@ package git
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/alpha-omega-corp/docker-svc/pkg/types"
 	"github.com/google/go-github/v56/github"
@@ -61,8 +60,6 @@ func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
 		return nil, errBuf
 	}
 
-	fmt.Print(pkg.HtmlUrl)
-
 	return pkg, nil
 }
 
@@ -98,8 +95,6 @@ func (h *packageHandler) query(method string, path string) (*http.Response, erro
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Print(res)
 
 	return res, nil
 }

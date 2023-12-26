@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
@@ -83,7 +82,7 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 			Synced: pkg.Pushed,
 		})
 	}
-	fmt.Print(resSlice)
+
 	return &proto.GetPackagesResponse{
 		Packages: resSlice,
 	}, nil
@@ -95,6 +94,19 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
+	ctSlice := make([]*proto.Container, len(pkg.Containers))
+	for index, ct := range pkg.Containers {
+		ctSlice[index] = &proto.Container{
+			Id:      ct.ID,
+			Image:   ct.Image,
+			Status:  ct.Status,
+			Command: ct.Command,
+			Created: ct.Created,
+			State:   ct.State,
+			Names:   ct.Names,
+		}
+	}
+
 	return &proto.GetPackageResponse{
 		Package: &proto.Package{
 			Id:         pkg.ID,
@@ -102,6 +114,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Name:       pkg.Name,
 			Dockerfile: pkg.Dockerfile,
 			Makefile:   pkg.Makefile,
+			Containers: ctSlice,
 			Git: &proto.GitPackage{
 				Id:         pkg.Git.Id,
 				Name:       pkg.Git.Name,
