@@ -61,6 +61,8 @@ func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
 		return nil, errBuf
 	}
 
+	fmt.Print(pkg.HtmlUrl)
+
 	return pkg, nil
 }
 
