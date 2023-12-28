@@ -1,8 +1,10 @@
 package git
 
 import (
-	"github.com/alpha-omega-corp/docker-svc/pkg/config"
+	"github.com/alpha-omega-corp/services/server"
 	"github.com/google/go-github/v56/github"
+	"github.com/spf13/viper"
+	_ "github.com/spf13/viper/remote"
 )
 
 type Handler interface {
@@ -17,15 +19,19 @@ type gitHandler struct {
 }
 
 func NewHandler() Handler {
-	c, err := config.LoadConfig()
+	v := viper.New()
+	cManager := server.NewConfigManager(v)
+
+	c, err := cManager.GithubConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	client := github.NewClient(nil).WithAuthToken(c.GIT)
+	client := github.NewClient(nil).WithAuthToken(c.Token)
+
 	return &gitHandler{
-		repoHandler: NewRepositoryHandler(client),
-		pkgHandler:  NewPackageHandler(client),
+		repoHandler: NewRepositoryHandler(client, c),
+		pkgHandler:  NewPackageHandler(client, c),
 	}
 }
 

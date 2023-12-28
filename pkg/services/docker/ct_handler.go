@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
+	"github.com/alpha-omega-corp/services/config"
+	"github.com/alpha-omega-corp/services/server"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/spf13/viper"
+	_ "github.com/spf13/viper/remote"
 	"github.com/uptrace/bun"
 	"io"
 )
@@ -24,26 +27,31 @@ type ContainerHandler interface {
 
 type containerHandler struct {
 	ContainerHandler
+	config config.GithubConfig
 	client *client.Client
-	config config.Config
 	db     *bun.DB
 }
 
 func NewContainerHandler(cli *client.Client, db *bun.DB) ContainerHandler {
-	c, err := config.LoadConfig()
+	v := viper.New()
+	cManager := server.NewConfigManager(v)
+
+	c, err := cManager.GithubConfig()
 	if err != nil {
 		panic(err)
 	}
 
 	return &containerHandler{
-		client: cli,
 		config: c,
+		client: cli,
 		db:     db,
 	}
 }
 
 func (h *containerHandler) Delete(containerId string, ctx context.Context) error {
-	return h.client.ContainerRemove(ctx, containerId, types.ContainerRemoveOptions{})
+	return h.client.ContainerRemove(ctx, containerId, types.ContainerRemoveOptions{
+		Force: true,
+	})
 
 }
 
@@ -74,7 +82,7 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 func (h *containerHandler) PullImage(imgName string, ctx context.Context) error {
 	authConfig := types.AuthConfig{
 		Username: "packages",
-		Password: h.config.GIT,
+		Password: h.config.Token,
 	}
 
 	encodedJSON, err := json.Marshal(authConfig)
@@ -117,5 +125,5 @@ func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctName strin
 }
 
 func (h *containerHandler) imageName(pkg *models.ContainerPackage) string {
-	return h.config.GHCR + pkg.Name + ":" + pkg.Tag
+	return h.config.Organization.Registry + "/" + h.config.Organization.Name + "/" + pkg.Name + ":" + pkg.Tag
 }

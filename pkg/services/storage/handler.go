@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"io/fs"
 	"os"
@@ -30,17 +29,11 @@ type Handler interface {
 type storageHandler struct {
 	Handler
 	fileSys fs.FS
-	config  config.Config
 }
 
 func NewHandler() Handler {
-	c, err := config.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
 	return &storageHandler{
 		fileSys: getFS(),
-		config:  c,
 	}
 }
 
@@ -57,7 +50,7 @@ func (h *storageHandler) GetPackageFile(path string) []byte {
 }
 
 func (h *storageHandler) CreatePackage(pkg *models.ContainerPackage, file []byte) error {
-	path := h.config.STORAGE + pkg.Name
+	path := "pkg/services/storage/embed/" + pkg.Name
 	if err := os.Mkdir(path, 0755); err != nil {
 		return err
 	}
@@ -156,8 +149,10 @@ func writeMakefile(pkg string, tag string) error {
 		padLeft("docker push ghcr.io/alpha-omega-corp/" + pkg + ":" + tag),
 	}
 
-	for _, line := range lines {
+	fileBytes := []byte(nil)
 
+	for _, line := range lines {
+		fileBytes = append(fileBytes, []byte(line+"\n")...)
 		_, err := mFile.WriteString(line + "\n")
 
 		if err != nil {

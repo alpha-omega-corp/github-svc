@@ -1,7 +1,9 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
@@ -37,17 +39,11 @@ func NewPackageHandler(db *bun.DB) PackageHandler {
 	}
 }
 
-func (h *packageHandler) Create(file []byte, name string, tag string, ctx context.Context) error {
-	pkg := new(models.ContainerPackage)
-	pkg.Name = name
-	pkg.Tag = tag
+func (h *packageHandler) Create(file []byte, name string, tag string, ctx context.Context) (err error) {
+	file = bytes.Trim(file, "\x00")
 
-	_, err := h.db.NewInsert().Model(pkg).Exec(ctx)
-	if err != nil {
-		return err
-	}
-
-	return h.store.CreatePackage(pkg, file)
+	err = h.git.Repositories().PutContents(ctx, "container-images", name+"/Dockerfile", file)
+	return
 }
 
 func (h *packageHandler) GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error) {
@@ -136,4 +132,27 @@ func (h *packageHandler) CreateContainer(id int64, ctName string, ctx context.Co
 	}
 
 	return nil
+}
+
+func writeMakefile(name string, tag string) []byte {
+	lines := []string{
+		"create:",
+		padLeft("docker build -t alpha-omega-corp/" + name + ":" + tag + " ."),
+		"tag:",
+		padLeft("docker tag alpha-omega-corp/" + name + ":" + tag + " ghcr.io/alpha-omega-corp/" + name + ":" + tag),
+		"push:",
+		padLeft("docker push ghcr.io/alpha-omega-corp/" + name + ":" + tag),
+	}
+
+	fileBytes := []byte(nil)
+
+	for _, line := range lines {
+		fileBytes = append(fileBytes, []byte(line+"\n")...)
+	}
+
+	return fileBytes
+}
+
+func padLeft(s string) string {
+	return fmt.Sprintf("%s"+s, "\t")
 }

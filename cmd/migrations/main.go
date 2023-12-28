@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/services/database"
+	"github.com/alpha-omega-corp/services/server"
+	"github.com/spf13/viper"
+	_ "github.com/spf13/viper/remote"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
@@ -13,8 +15,14 @@ import (
 )
 
 func main() {
-	c, _ := config.LoadConfig()
-	dbHandler := database.NewHandler(c.DSN)
+	v := viper.New()
+	cManager := server.NewConfigManager(v)
+	c, err := cManager.HostsConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	dbHandler := database.NewHandler(c.Docker.Dsn)
 
 	defer func(db *bun.DB) {
 		err := db.Close()

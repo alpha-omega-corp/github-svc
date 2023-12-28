@@ -2,7 +2,11 @@ package services
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
+
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
 	"io"
@@ -13,14 +17,16 @@ import (
 type Server struct {
 	proto.UnimplementedDockerServiceServer
 
-	docker docker.Handler
-	pkg    PackageHandler
+	docker     docker.Handler
+	pkg        PackageHandler
+	gitHandler git.Handler
 }
 
 func NewServer(db *bun.DB) *Server {
 	return &Server{
-		docker: docker.NewHandler(db),
-		pkg:    NewPackageHandler(db),
+		docker:     docker.NewHandler(db),
+		pkg:        NewPackageHandler(db),
+		gitHandler: git.NewHandler(),
 	}
 }
 
@@ -68,20 +74,25 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 }
 
 func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
-	packages, err := s.pkg.GetAll(ctx)
+
+	res, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
 	if err != nil {
 		return nil, err
 	}
 
-	var resSlice []*proto.SimplePackage
-	for _, pkg := range packages {
-		resSlice = append(resSlice, &proto.SimplePackage{
-			Id:     pkg.ID,
-			Tag:    pkg.Tag,
-			Name:   pkg.Name,
-			Synced: pkg.Pushed,
-		})
+	resSlice := make([]*proto.SimplePackage, len(res))
+	for index, pkg := range res {
+		b, err := json.Marshal(pkg)
+		if err != nil {
+			return nil, err
+		}
+
+		if mErr := json.Unmarshal(b, &resSlice[index]); mErr != nil {
+			return nil, mErr
+		}
 	}
+
+	fmt.Print(resSlice)
 
 	return &proto.GetPackagesResponse{
 		Packages: resSlice,

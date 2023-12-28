@@ -2,14 +2,12 @@ package git
 
 import (
 	"encoding/json"
-	"github.com/alpha-omega-corp/docker-svc/pkg/config"
 	"github.com/alpha-omega-corp/docker-svc/pkg/types"
+	"github.com/alpha-omega-corp/services/config"
 	"github.com/google/go-github/v56/github"
 	"io"
 	"net/http"
 )
-
-var orgUrl = "https://api.github.com/orgs/alpha-omega-corp/"
 
 type PackageHandler interface {
 	GetOne(pkgName string) (*types.GitPackage, error)
@@ -20,25 +18,20 @@ type packageHandler struct {
 	PackageHandler
 	client    *github.Client
 	rawClient *http.Client
-	config    config.Config
+	config    config.GithubConfig
 }
 
-func NewPackageHandler(c *github.Client) PackageHandler {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
+func NewPackageHandler(cli *github.Client, c config.GithubConfig) PackageHandler {
 
 	return &packageHandler{
-		client:    c,
-		rawClient: c.Client(),
-		config:    cfg,
+		client:    cli,
+		rawClient: cli.Client(),
+		config:    c,
 	}
 }
 
 func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
-
-	res, err := h.queryGet("packages/container/" + pkgName)
+	res, err := h.query("GET", "packages/container/"+pkgName)
 	if err != nil {
 		panic(err)
 	}
@@ -72,19 +65,10 @@ func (h *packageHandler) Delete(pkgName string) error {
 	return nil
 }
 
-func (h *packageHandler) queryGet(path string) (*http.Response, error) {
-	res, err := h.client.Client().Get(orgUrl + path)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
 func (h *packageHandler) query(method string, path string) (*http.Response, error) {
-	req, err := http.NewRequest(method, orgUrl+path, nil)
+	req, err := http.NewRequest(method, h.config.Organization.Url+path, nil)
 	req.Header.Add("Accept", "application/vnd.github+json")
-	req.Header.Add("Authorization", "Bearer "+h.config.GIT)
+	req.Header.Add("Authorization", "Bearer "+h.config.Token)
 	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
 
 	if err != nil {
