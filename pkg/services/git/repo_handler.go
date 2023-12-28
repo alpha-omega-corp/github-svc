@@ -7,7 +7,7 @@ import (
 )
 
 type RepositoryHandler interface {
-	GetContents(ctx context.Context, repo string, path string) ([]*github.RepositoryContent, error)
+	GetContents(ctx context.Context, repo string, path string) (file *github.RepositoryContent, dir []*github.RepositoryContent, err error)
 	PutContents(ctx context.Context, repo string, path string, content []byte) error
 	GetAll(ctx context.Context) ([]*github.Repository, error)
 }
@@ -36,13 +36,14 @@ func (h *repositoryHandler) GetAll(ctx context.Context) ([]*github.Repository, e
 	return packages, nil
 }
 
-func (h *repositoryHandler) GetContents(ctx context.Context, repo string, path string) ([]*github.RepositoryContent, error) {
-	_, dirContent, _, err := h.client.Repositories.GetContents(ctx, h.config.Organization.Name, repo, path, nil)
+func (h *repositoryHandler) GetContents(ctx context.Context, repo string, path string) (file *github.RepositoryContent, dir []*github.RepositoryContent, err error) {
+	file, dir, _, err = h.client.Repositories.GetContents(ctx, h.config.Organization.Name, repo, path, nil)
+
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return dirContent, nil
+	return
 }
 
 func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path string, content []byte) error {

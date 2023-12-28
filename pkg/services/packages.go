@@ -47,28 +47,8 @@ func (h *packageHandler) Create(file []byte, name string, tag string, ctx contex
 }
 
 func (h *packageHandler) GetOne(name string, ctx context.Context) (*models.ContainerPackage, error) {
-	var pkg models.ContainerPackage
-	err := h.db.NewSelect().Model(&pkg).Where("id = ?", name).Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
 
-	gitPkg, err := h.git.Packages().GetOne(pkg.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	pkg.Dockerfile = h.store.GetPackageFile(pkg.Name + "/Dockerfile")
-	pkg.Makefile = h.store.GetPackageFile(pkg.Name + "/Makefile")
-	pkg.Git = gitPkg
-
-	res, err := h.docker.Container().GetAllFrom(&pkg, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	pkg.Containers = res
-	return &pkg, nil
+	return nil, nil
 }
 
 func (h *packageHandler) GetAll(ctx context.Context) ([]models.ContainerPackage, error) {

@@ -75,13 +75,13 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 
 func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
 
-	res, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
+	_, dir, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
 	if err != nil {
 		return nil, err
 	}
 
-	resSlice := make([]*proto.SimplePackage, len(res))
-	for index, pkg := range res {
+	resSlice := make([]*proto.SimplePackage, len(dir))
+	for index, pkg := range dir {
 		b, err := json.Marshal(pkg)
 		if err != nil {
 			return nil, err
@@ -110,45 +110,17 @@ func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainer
 }
 
 func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
-	pkg, err := s.pkg.GetOne(req.Name, ctx)
+	file, dir, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name+"/Dockerfile")
 	if err != nil {
 		return nil, err
 	}
 
-	ctSlice := make([]*proto.Container, len(pkg.Containers))
-	for index, ct := range pkg.Containers {
-		ctSlice[index] = &proto.Container{
-			Id:      ct.ID,
-			Image:   ct.Image,
-			Status:  ct.Status,
-			Command: ct.Command,
-			Created: ct.Created,
-			State:   ct.State,
-			Names:   ct.Names,
-		}
-	}
+	fmt.Print(file)
+	fmt.Print(dir)
 
 	return &proto.GetPackageResponse{
 		Package: &proto.Package{
-			Id:         pkg.ID,
-			Tag:        pkg.Tag,
-			Name:       pkg.Name,
-			Dockerfile: pkg.Dockerfile,
-			Makefile:   pkg.Makefile,
-			Containers: ctSlice,
-			Git: &proto.GitPackage{
-				Id:         pkg.Git.Id,
-				Name:       pkg.Git.Name,
-				Type:       pkg.Git.Type,
-				Version:    pkg.Git.Version,
-				Visibility: pkg.Git.Visibility,
-				Url:        pkg.Git.Url,
-				HtmlUrl:    pkg.Git.HtmlUrl,
-				OwnerId:    pkg.Git.Owner.Id,
-				OwnerName:  pkg.Git.Owner.Name,
-				OwnerNode:  pkg.Git.Owner.NodeId,
-				OwnerType:  pkg.Git.Owner.Type,
-			},
+			Name: req.Name,
 		},
 	}, nil
 }
