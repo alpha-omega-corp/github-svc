@@ -110,7 +110,7 @@ func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainer
 }
 
 func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
-	pkg, err := s.pkg.GetOne(req.Id, ctx)
+	pkg, err := s.pkg.GetOne(req.Name, ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ import (
 type PackageHandler interface {
 	Create(file []byte, name string, tag string, ctx context.Context) error
 	GetAll(ctx context.Context) ([]models.ContainerPackage, error)
-	GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error)
+	GetOne(name string, ctx context.Context) (*models.ContainerPackage, error)
 	Delete(id int64, ctx context.Context) error
 	Push(id int64, ctx context.Context) error
 	CreateContainer(id int64, ctName string, ctx context.Context) error
@@ -46,9 +46,9 @@ func (h *packageHandler) Create(file []byte, name string, tag string, ctx contex
 	return
 }
 
-func (h *packageHandler) GetOne(id int64, ctx context.Context) (*models.ContainerPackage, error) {
+func (h *packageHandler) GetOne(name string, ctx context.Context) (*models.ContainerPackage, error) {
 	var pkg models.ContainerPackage
-	err := h.db.NewSelect().Model(&pkg).Where("id = ?", id).Scan(ctx)
+	err := h.db.NewSelect().Model(&pkg).Where("id = ?", name).Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
