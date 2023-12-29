@@ -1,7 +1,8 @@
-package git
+package github
 
 import (
 	"context"
+	"fmt"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/google/go-github/v56/github"
 )
@@ -14,6 +15,7 @@ type Content struct {
 
 type PackageFile struct {
 	Name    string
+	SHA     string
 	Content []byte
 }
 
@@ -66,7 +68,9 @@ func (h *repositoryHandler) GetPackageFiles(ctx context.Context, name string) ([
 			return nil, err
 		}
 
+		fmt.Print(*file.SHA)
 		files[index] = &PackageFile{
+			SHA:     *file.SHA,
 			Name:    *file.Name,
 			Content: []byte(content),
 		}
@@ -91,7 +95,7 @@ func (h *repositoryHandler) GetContents(ctx context.Context, repo string, path s
 
 func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path string, content []byte) error {
 	_, _, err := h.client.Repositories.CreateFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
-		Message: github.String("Create package"),
+		Message: github.String("Webhook: Action"),
 		Content: content,
 	})
 	if err != nil {

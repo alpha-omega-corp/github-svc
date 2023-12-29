@@ -1,4 +1,4 @@
-package git
+package github
 
 import (
 	"github.com/alpha-omega-corp/services/server"
@@ -8,12 +8,14 @@ import (
 )
 
 type Handler interface {
+	Templates() TemplateHandler
 	Repositories() RepositoryHandler
 	Packages() PackageHandler
 }
 
 type gitHandler struct {
 	Handler
+	tmplHandler TemplateHandler
 	repoHandler RepositoryHandler
 	pkgHandler  PackageHandler
 }
@@ -30,9 +32,14 @@ func NewHandler() Handler {
 	client := github.NewClient(nil).WithAuthToken(c.Token)
 
 	return &gitHandler{
+		tmplHandler: NewTemplateHandler(c),
 		repoHandler: NewRepositoryHandler(client, c),
 		pkgHandler:  NewPackageHandler(client, c),
 	}
+}
+
+func (git *gitHandler) Templates() TemplateHandler {
+	return git.tmplHandler
 }
 
 func (git *gitHandler) Repositories() RepositoryHandler {

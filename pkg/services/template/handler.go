@@ -1,4 +1,4 @@
-package storage
+package template
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	//go:embed embed
+	//go:embed storage
 	embedFS      embed.FS
 	unwrapFSOnce sync.Once
 	unwrappedFS  fs.FS
@@ -28,21 +28,22 @@ type Handler interface {
 
 type storageHandler struct {
 	Handler
-	fileSys fs.FS
+	fs fs.FS
 }
 
 func NewHandler() Handler {
+
 	return &storageHandler{
-		fileSys: getFS(),
+		fs: getFS(),
 	}
 }
 
 func (h *storageHandler) GetDirectories(dir string) ([]fs.DirEntry, error) {
-	return fs.ReadDir(h.fileSys, dir)
+	return fs.ReadDir(h.fs, dir)
 }
 
 func (h *storageHandler) GetPackageFile(path string) []byte {
-	file, err := fs.ReadFile(h.fileSys, path)
+	file, err := fs.ReadFile(h.fs, path)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +51,7 @@ func (h *storageHandler) GetPackageFile(path string) []byte {
 }
 
 func (h *storageHandler) CreatePackage(pkg *models.ContainerPackage, file []byte) error {
-	path := "pkg/services/storage/embed/" + pkg.Name
+	path := "pkg/services/template/embed/" + pkg.Name
 	if err := os.Mkdir(path, 0755); err != nil {
 		return err
 	}
@@ -74,17 +75,6 @@ func (h *storageHandler) PushPackage(name string) error {
 	}
 
 	return nil
-}
-
-func getFS() fs.FS {
-	unwrapFSOnce.Do(func() {
-		fileSys, err := fs.Sub(embedFS, "embed")
-		if err != nil {
-			panic(err)
-		}
-		unwrappedFS = fileSys
-	})
-	return unwrappedFS
 }
 
 func (h *storageHandler) writeFiles(path string, pkg *models.ContainerPackage, file []byte) error {
@@ -168,7 +158,7 @@ func padLeft(s string) string {
 }
 
 func runMake(pkgName string, act string) error {
-	path, err := filepath.Abs("pkg/services/storage/embed/" + pkgName)
+	path, err := filepath.Abs("pkg/services/template/embed/" + pkgName)
 	if err != nil {
 		return err
 	}
@@ -184,4 +174,15 @@ func runMake(pkgName string, act string) error {
 	fmt.Println(string(res))
 
 	return nil
+}
+
+func getFS() fs.FS {
+	unwrapFSOnce.Do(func() {
+		fileSys, err := fs.Sub(embedFS, "templates")
+		if err != nil {
+			panic(err)
+		}
+		unwrappedFS = fileSys
+	})
+	return unwrappedFS
 }

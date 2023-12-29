@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/git"
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/storage"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/github"
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/template"
 	"github.com/uptrace/bun"
 	"os"
 )
@@ -26,23 +26,23 @@ type packageHandler struct {
 
 	db     *bun.DB
 	docker docker.Handler
-	store  storage.Handler
-	git    git.Handler
+	store  template.Handler
+	git    github.Handler
 }
 
 func NewPackageHandler(db *bun.DB) PackageHandler {
 	return &packageHandler{
 		db:     db,
 		docker: docker.NewHandler(db),
-		store:  storage.NewHandler(),
-		git:    git.NewHandler(),
+		store:  template.NewHandler(),
+		git:    github.NewHandler(),
 	}
 }
 
 func (h *packageHandler) Create(file []byte, name string, tag string, ctx context.Context) (err error) {
 	file = bytes.Trim(file, "\x00")
 
-	err = h.git.Repositories().PutContents(ctx, "container-images", name+"/Dockerfile", file)
+	err = h.git.Repositories().PutContents(ctx, "container-images", name+"/"+tag+"/Dockerfile", file)
 	return
 }
 
@@ -68,7 +68,7 @@ func (h *packageHandler) Delete(id int64, ctx context.Context) error {
 		return err
 	}
 
-	if err := os.RemoveAll("storage/" + pkg.Name); err != nil {
+	if err := os.RemoveAll("template/" + pkg.Name); err != nil {
 		return err
 	}
 	if err := h.git.Packages().Delete(pkg.Name); err != nil {

@@ -1,0 +1,8 @@
+create:
+	docker build --tag {{ .OrgName }}/{{ .Name }}:{{ .Tag }} .
+
+tag:
+	docker tag {{ .OrgName }}/{{ .Name }}:{{ .Tag }} {{ .Registry }}/{{ .OrgName }}/{{ .Name }}:{{ .Tag }}
+
+push:
+	docker push {{ .Registry }}/{{ .OrgName }}/{{ .Name }}:{{ .Tag }}
