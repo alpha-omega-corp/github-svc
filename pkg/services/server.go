@@ -75,13 +75,13 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 
 func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
 
-	_, dir, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
+	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
 	if err != nil {
 		return nil, err
 	}
 
-	resSlice := make([]*proto.SimplePackage, len(dir))
-	for index, pkg := range dir {
+	resSlice := make([]*proto.SimplePackage, len(c.Dir))
+	for index, pkg := range c.Dir {
 		b, err := json.Marshal(pkg)
 		if err != nil {
 			return nil, err
@@ -93,7 +93,6 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 	}
 
 	fmt.Print(resSlice)
-
 	return &proto.GetPackagesResponse{
 		Packages: resSlice,
 	}, nil
@@ -110,17 +109,24 @@ func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainer
 }
 
 func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
-	file, dir, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name+"/Dockerfile")
+	files, err := s.gitHandler.Repositories().GetPackageFiles(ctx, req.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Print(file)
-	fmt.Print(dir)
+	fileSlice := make([]*proto.File, len(files))
+	for index, file := range files {
+		fileSlice[index] = &proto.File{
+			Name:    file.Name,
+			Content: file.Content,
+		}
+	}
 
 	return &proto.GetPackageResponse{
 		Package: &proto.Package{
-			Name: req.Name,
+			Name:       req.Name,
+			Files:      fileSlice,
+			Containers: nil,
 		},
 	}, nil
 }

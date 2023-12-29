@@ -100,11 +100,9 @@ message Container {
 }
 
 message Package {
-  string name = 3;
-  bytes dockerfile = 4;
-  bytes makefile = 5;
-  SimplePackage simplePackage = 6;
-  repeated Container containers = 7;
+  string name = 1;
+  repeated File files = 2;
+  repeated Container containers = 3;
 }
 
 message SimplePackage {
@@ -130,4 +128,9 @@ message GitPackage {
   string ownerName = 9;
   string ownerNode = 10;
   string ownerType = 11;
+}
+
+message File {
+  string name = 1;
+  bytes content = 2;
 }
