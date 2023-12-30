@@ -22,16 +22,17 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DockerServiceClient interface {
-	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
-	GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error)
-	GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error)
-	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
 	PushPackage(ctx context.Context, in *PushPackageRequest, opts ...grpc.CallOption) (*PushPackageResponse, error)
 	ContainerPackage(ctx context.Context, in *ContainerPackageRequest, opts ...grpc.CallOption) (*ContainerPackageResponse, error)
 	DeleteContainer(ctx context.Context, in *DeleteContainerRequest, opts ...grpc.CallOption) (*DeleteContainerResponse, error)
 	GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error)
 	GetContainerLogs(ctx context.Context, in *GetContainerLogsRequest, opts ...grpc.CallOption) (*GetContainerLogsResponse, error)
+	GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error)
+	GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error)
 	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
+	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
+	CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error)
+	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
 }
 
 type dockerServiceClient struct {
@@ -40,42 +41,6 @@ type dockerServiceClient struct {
 
 func NewDockerServiceClient(cc grpc.ClientConnInterface) DockerServiceClient {
 	return &dockerServiceClient{cc}
-}
-
-func (c *dockerServiceClient) CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error) {
-	out := new(CreatePackageResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/CreatePackage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerServiceClient) GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error) {
-	out := new(GetPackagesResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackages", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerServiceClient) GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error) {
-	out := new(GetPackageResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerServiceClient) DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error) {
-	out := new(DeletePackageResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/DeletePackage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *dockerServiceClient) PushPackage(ctx context.Context, in *PushPackageRequest, opts ...grpc.CallOption) (*PushPackageResponse, error) {
@@ -123,9 +88,54 @@ func (c *dockerServiceClient) GetContainerLogs(ctx context.Context, in *GetConta
 	return out, nil
 }
 
+func (c *dockerServiceClient) GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error) {
+	out := new(GetPackagesResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackages", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerServiceClient) GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error) {
+	out := new(GetPackageResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerServiceClient) GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error) {
 	out := new(GetPackageFileResponse)
 	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackageFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerServiceClient) CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error) {
+	out := new(CreatePackageResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/CreatePackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerServiceClient) CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error) {
+	out := new(CreatePackageVersionResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/CreatePackageVersion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerServiceClient) DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error) {
+	out := new(DeletePackageResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/DeletePackage", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +146,17 @@ func (c *dockerServiceClient) GetPackageFile(ctx context.Context, in *GetPackage
 // All implementations must embed UnimplementedDockerServiceServer
 // for forward compatibility
 type DockerServiceServer interface {
-	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
-	GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error)
-	GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error)
-	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
 	PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error)
 	ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error)
 	DeleteContainer(context.Context, *DeleteContainerRequest) (*DeleteContainerResponse, error)
 	GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error)
 	GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error)
+	GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error)
+	GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error)
 	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
+	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
+	CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error)
+	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
 }
 
@@ -153,18 +164,6 @@ type DockerServiceServer interface {
 type UnimplementedDockerServiceServer struct {
 }
 
-func (UnimplementedDockerServiceServer) CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePackage not implemented")
-}
-func (UnimplementedDockerServiceServer) GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPackages not implemented")
-}
-func (UnimplementedDockerServiceServer) GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPackage not implemented")
-}
-func (UnimplementedDockerServiceServer) DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePackage not implemented")
-}
 func (UnimplementedDockerServiceServer) PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushPackage not implemented")
 }
@@ -180,8 +179,23 @@ func (UnimplementedDockerServiceServer) GetContainers(context.Context, *GetConta
 func (UnimplementedDockerServiceServer) GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainerLogs not implemented")
 }
+func (UnimplementedDockerServiceServer) GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackages not implemented")
+}
+func (UnimplementedDockerServiceServer) GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackage not implemented")
+}
 func (UnimplementedDockerServiceServer) GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPackageFile not implemented")
+}
+func (UnimplementedDockerServiceServer) CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePackage not implemented")
+}
+func (UnimplementedDockerServiceServer) CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePackageVersion not implemented")
+}
+func (UnimplementedDockerServiceServer) DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePackage not implemented")
 }
 func (UnimplementedDockerServiceServer) mustEmbedUnimplementedDockerServiceServer() {}
 
@@ -194,78 +208,6 @@ type UnsafeDockerServiceServer interface {
 
 func RegisterDockerServiceServer(s grpc.ServiceRegistrar, srv DockerServiceServer) {
 	s.RegisterService(&DockerService_ServiceDesc, srv)
-}
-
-func _DockerService_CreatePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreatePackageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerServiceServer).CreatePackage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/docker.DockerService/CreatePackage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).CreatePackage(ctx, req.(*CreatePackageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerService_GetPackages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPackagesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerServiceServer).GetPackages(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/docker.DockerService/GetPackages",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).GetPackages(ctx, req.(*GetPackagesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerService_GetPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPackageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerServiceServer).GetPackage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/docker.DockerService/GetPackage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).GetPackage(ctx, req.(*GetPackageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerService_DeletePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeletePackageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerServiceServer).DeletePackage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/docker.DockerService/DeletePackage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).DeletePackage(ctx, req.(*DeletePackageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _DockerService_PushPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -358,6 +300,42 @@ func _DockerService_GetContainerLogs_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_GetPackages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).GetPackages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/GetPackages",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).GetPackages(ctx, req.(*GetPackagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DockerService_GetPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).GetPackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/GetPackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).GetPackage(ctx, req.(*GetPackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerService_GetPackageFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPackageFileRequest)
 	if err := dec(in); err != nil {
@@ -376,6 +354,60 @@ func _DockerService_GetPackageFile_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_CreatePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).CreatePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/CreatePackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).CreatePackage(ctx, req.(*CreatePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DockerService_CreatePackageVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePackageVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).CreatePackageVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/CreatePackageVersion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).CreatePackageVersion(ctx, req.(*CreatePackageVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DockerService_DeletePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).DeletePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/DeletePackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).DeletePackage(ctx, req.(*DeletePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DockerService_ServiceDesc is the grpc.ServiceDesc for DockerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -383,22 +415,6 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "docker.DockerService",
 	HandlerType: (*DockerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CreatePackage",
-			Handler:    _DockerService_CreatePackage_Handler,
-		},
-		{
-			MethodName: "GetPackages",
-			Handler:    _DockerService_GetPackages_Handler,
-		},
-		{
-			MethodName: "GetPackage",
-			Handler:    _DockerService_GetPackage_Handler,
-		},
-		{
-			MethodName: "DeletePackage",
-			Handler:    _DockerService_DeletePackage_Handler,
-		},
 		{
 			MethodName: "PushPackage",
 			Handler:    _DockerService_PushPackage_Handler,
@@ -420,8 +436,28 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DockerService_GetContainerLogs_Handler,
 		},
 		{
+			MethodName: "GetPackages",
+			Handler:    _DockerService_GetPackages_Handler,
+		},
+		{
+			MethodName: "GetPackage",
+			Handler:    _DockerService_GetPackage_Handler,
+		},
+		{
 			MethodName: "GetPackageFile",
 			Handler:    _DockerService_GetPackageFile_Handler,
+		},
+		{
+			MethodName: "CreatePackage",
+			Handler:    _DockerService_CreatePackage_Handler,
+		},
+		{
+			MethodName: "CreatePackageVersion",
+			Handler:    _DockerService_CreatePackageVersion_Handler,
+		},
+		{
+			MethodName: "DeletePackage",
+			Handler:    _DockerService_DeletePackage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

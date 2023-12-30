@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 	"net/http"
 	"strings"
 )
+
+var repository = "container-images"
 
 type Server struct {
 	proto.UnimplementedDockerServiceServer
@@ -30,11 +33,27 @@ func NewServer(db *bun.DB) *Server {
 }
 
 func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
-	if err := s.pkg.Create(req.Dockerfile, req.Workdir, req.Tag, ctx); err != nil {
+	path := req.Workdir + "/" + req.Tag + "/Dockerfile"
+	file := bytes.Trim(req.Dockerfile, "\x00")
+
+	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file); err != nil {
 		return nil, err
 	}
 
 	return &proto.CreatePackageResponse{
+		Status: http.StatusCreated,
+	}, nil
+}
+
+func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePackageVersionRequest) (*proto.CreatePackageVersionResponse, error) {
+	path := req.Name + "/" + req.Tag + "/Dockerfile"
+	file := bytes.Trim(req.Content, "\x00")
+
+	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file); err != nil {
+		return nil, err
+	}
+
+	return &proto.CreatePackageVersionResponse{
 		Status: http.StatusCreated,
 	}, nil
 }
@@ -111,7 +130,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 }
 
 func (s *Server) GetPackageFile(ctx context.Context, req *proto.GetPackageFileRequest) (*proto.GetPackageFileResponse, error) {
-	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name+"/"+req.Path)
+	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Path+"/"+req.Name)
 	if err != nil {
 		return nil, err
 	}

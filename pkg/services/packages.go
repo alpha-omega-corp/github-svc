@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/models"
@@ -40,9 +39,7 @@ func NewPackageHandler(db *bun.DB) PackageHandler {
 }
 
 func (h *packageHandler) Create(file []byte, name string, tag string, ctx context.Context) (err error) {
-	file = bytes.Trim(file, "\x00")
 
-	err = h.git.Repositories().PutContents(ctx, "container-images", name+"/"+tag+"/Dockerfile", file)
 	return
 }
 
