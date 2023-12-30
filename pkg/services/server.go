@@ -11,6 +11,8 @@ import (
 	"github.com/uptrace/bun"
 	"io"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 )
 
@@ -49,6 +51,7 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	path := req.Name + "/" + req.Tag + "/Dockerfile"
 	file := bytes.Trim(req.Content, "\x00")
 
+	fmt.Print(file)
 	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file); err != nil {
 		return nil, err
 	}
@@ -184,14 +187,16 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 }
 
 func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
+	path := req.Name + "/" + strconv.FormatInt(req.Tag, 10) + "/Makefile"
 
 	buf, err := s.gitHandler.Templates().CreateMakefile(req.Name, req.Tag)
 	if err != nil {
 		return nil, err
 	}
 
-	path := req.Name + "/Makefile"
-	fmt.Print(buf.String())
+	if err := os.WriteFile("/tmp/"+req.VersionSHA, buf.Bytes(), 0644); err != nil {
+		return nil, err
+	}
 
 	if pErr := s.gitHandler.Repositories().
 		PutContents(ctx, "container-images", path, buf.Bytes()); pErr != nil {
