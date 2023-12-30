@@ -13,6 +13,17 @@ service DockerService {
   rpc DeleteContainer(DeleteContainerRequest) returns (DeleteContainerResponse) {}
   rpc GetContainers(GetContainersRequest) returns (GetContainersResponse) {}
   rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse) {}
+
+  rpc GetPackageFile(GetPackageFileRequest) returns (GetPackageFileResponse) {}
+}
+
+message GetPackageFileRequest {
+  string name = 1;
+  string path = 2;
+}
+
+message GetPackageFileResponse {
+  bytes content = 1;
 }
 
 message GetPackageResponse {

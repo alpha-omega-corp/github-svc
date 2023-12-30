@@ -31,6 +31,7 @@ type DockerServiceClient interface {
 	DeleteContainer(ctx context.Context, in *DeleteContainerRequest, opts ...grpc.CallOption) (*DeleteContainerResponse, error)
 	GetContainers(ctx context.Context, in *GetContainersRequest, opts ...grpc.CallOption) (*GetContainersResponse, error)
 	GetContainerLogs(ctx context.Context, in *GetContainerLogsRequest, opts ...grpc.CallOption) (*GetContainerLogsResponse, error)
+	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
 }
 
 type dockerServiceClient struct {
@@ -122,6 +123,15 @@ func (c *dockerServiceClient) GetContainerLogs(ctx context.Context, in *GetConta
 	return out, nil
 }
 
+func (c *dockerServiceClient) GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error) {
+	out := new(GetPackageFileResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackageFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DockerServiceServer is the server API for DockerService service.
 // All implementations must embed UnimplementedDockerServiceServer
 // for forward compatibility
@@ -135,6 +145,7 @@ type DockerServiceServer interface {
 	DeleteContainer(context.Context, *DeleteContainerRequest) (*DeleteContainerResponse, error)
 	GetContainers(context.Context, *GetContainersRequest) (*GetContainersResponse, error)
 	GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error)
+	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
 }
 
@@ -168,6 +179,9 @@ func (UnimplementedDockerServiceServer) GetContainers(context.Context, *GetConta
 }
 func (UnimplementedDockerServiceServer) GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainerLogs not implemented")
+}
+func (UnimplementedDockerServiceServer) GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackageFile not implemented")
 }
 func (UnimplementedDockerServiceServer) mustEmbedUnimplementedDockerServiceServer() {}
 
@@ -344,6 +358,24 @@ func _DockerService_GetContainerLogs_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_GetPackageFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).GetPackageFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/GetPackageFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).GetPackageFile(ctx, req.(*GetPackageFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DockerService_ServiceDesc is the grpc.ServiceDesc for DockerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -386,6 +418,10 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetContainerLogs",
 			Handler:    _DockerService_GetContainerLogs_Handler,
+		},
+		{
+			MethodName: "GetPackageFile",
+			Handler:    _DockerService_GetPackageFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

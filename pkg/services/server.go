@@ -110,6 +110,22 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 	}, nil
 }
 
+func (s *Server) GetPackageFile(ctx context.Context, req *proto.GetPackageFileRequest) (*proto.GetPackageFileResponse, error) {
+	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name+"/"+req.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := c.File.GetContent()
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.GetPackageFileResponse{
+		Content: []byte(file),
+	}, nil
+}
+
 func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLogsRequest) (*proto.GetContainerLogsResponse, error) {
 	logs, err := s.docker.Container().GetLogs(req.ContainerId, ctx)
 	if err != nil {
