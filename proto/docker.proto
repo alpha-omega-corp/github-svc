@@ -98,7 +98,8 @@ message GetPackagesResponse {
 }
 
 message DeletePackageVersionRequest {
-  PackageIdentifier pkgID = 1;
+  string name = 1;
+  string tag = 2;
 }
 
 message DeletePackageVersionResponse {

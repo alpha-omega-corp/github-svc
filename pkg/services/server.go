@@ -108,11 +108,14 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 }
 
 func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageVersionRequest) (*proto.DeletePackageVersionResponse, error) {
-	if err := s.gitHandler.Packages().Delete(req.PkgID.Name, req.PkgID.Tag); err != nil {
+	if err := s.gitHandler.Packages().Delete(req.Name, req.Tag); err != nil {
 		return nil, err
 	}
 
-	ctx.Done()
+	if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, req.Name+"/"+req.Tag); err != nil {
+		return nil, err
+	}
+
 	return &proto.DeletePackageVersionResponse{
 		Status: http.StatusOK,
 	}, nil
@@ -162,7 +165,16 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			Sha:  *dir.SHA,
 			Link: *dir.HTMLURL,
 			Package: &proto.GitPackage{
-				Name: pkg.Name,
+				Id:        pkg.Id,
+				Name:      pkg.Name,
+				Type:      pkg.Type,
+				Version:   pkg.Version,
+				Url:       pkg.Url,
+				HtmlUrl:   pkg.HtmlUrl,
+				OwnerId:   pkg.Owner.Id,
+				OwnerName: pkg.Owner.Name,
+				OwnerType: pkg.Owner.Type,
+				OwnerNode: pkg.Owner.NodeId,
 			},
 		}
 	}

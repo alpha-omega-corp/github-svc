@@ -23,6 +23,7 @@ type RepositoryHandler interface {
 	GetPackageFiles(ctx context.Context, name string) ([]*PackageFile, error)
 	GetContents(ctx context.Context, repo string, path string) (content *Content, err error)
 	PutContents(ctx context.Context, repo string, path string, content []byte, sha *string) error
+	DeleteContents(ctx context.Context, repo string, path string) error
 	GetAll(ctx context.Context) ([]*github.Repository, error)
 }
 
@@ -102,6 +103,20 @@ func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path s
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (h *repositoryHandler) DeleteContents(ctx context.Context, repo string, path string) error {
+	res, _, err := h.client.Repositories.DeleteFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
+		Message: github.String("Webhook: Action"),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(res)
 
 	return nil
 }
