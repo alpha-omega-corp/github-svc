@@ -107,13 +107,13 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	}, nil
 }
 
-func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
+func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageVersionRequest) (*proto.DeletePackageVersionResponse, error) {
 	if err := s.gitHandler.Packages().Delete(req.PkgID.Name, req.PkgID.Tag); err != nil {
 		return nil, err
 	}
 
 	ctx.Done()
-	return &proto.DeletePackageResponse{
+	return &proto.DeletePackageVersionResponse{
 		Status: http.StatusOK,
 	}, nil
 }
@@ -156,13 +156,14 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 			return nil, err
 		}
 
-		fmt.Print(pkg)
-
 		versionSlice[index] = &proto.PackageVersion{
 			Name: *dir.Name,
 			Path: *dir.Path,
 			Sha:  *dir.SHA,
 			Link: *dir.HTMLURL,
+			Package: &proto.GitPackage{
+				Name: pkg.Name,
+			},
 		}
 	}
 
