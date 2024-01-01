@@ -107,16 +107,16 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	}, nil
 }
 
-func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageVersionRequest) (*proto.DeletePackageVersionResponse, error) {
+func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
 	if err := s.gitHandler.Packages().Delete(req.Name, req.Tag); err != nil {
 		return nil, err
 	}
 
-	if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, req.Name+"/"+req.Tag); err != nil {
+	if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, req.Name+"/"+req.Tag, req.Sha); err != nil {
 		return nil, err
 	}
 
-	return &proto.DeletePackageVersionResponse{
+	return &proto.DeletePackageResponse{
 		Status: http.StatusOK,
 	}, nil
 }
