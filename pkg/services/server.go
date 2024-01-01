@@ -12,7 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
+	"path/filepath"
 	"strings"
 )
 
@@ -21,24 +21,70 @@ var repository = "container-images"
 type Server struct {
 	proto.UnimplementedDockerServiceServer
 
-	docker     docker.Handler
-	pkg        PackageHandler
-	gitHandler github.Handler
+	gitHandler    github.Handler
+	dockerHandler docker.Handler
 }
 
 func NewServer(db *bun.DB) *Server {
 	return &Server{
-		docker:     docker.NewHandler(db),
-		pkg:        NewPackageHandler(db),
-		gitHandler: github.NewHandler(),
+		gitHandler:    github.NewHandler(),
+		dockerHandler: docker.NewHandler(db),
 	}
+}
+
+func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
+	buf, err := s.gitHandler.Templates().CreateMakefile(req.Name, req.Tag)
+	if err != nil {
+		return nil, err
+	}
+
+	path := req.Name + "/" + req.Tag + "/Dockerfile"
+	content, err := s.gitHandler.Repositories().GetContents(ctx, repository, path)
+	if err != nil {
+		return nil, err
+	}
+
+	dockerfile, cErr := content.File.GetContent()
+	if err != nil {
+		return nil, cErr
+	}
+
+	dir, err := os.MkdirTemp("/tmp", req.VersionSHA)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(path string) {
+		rmErr := os.RemoveAll(path)
+		if rmErr != nil {
+			panic(rmErr)
+		}
+	}(dir)
+
+	tmpMakefile := filepath.Join(dir, "Makefile")
+	if err := os.WriteFile(tmpMakefile, buf.Bytes(), 0644); err != nil {
+		return nil, err
+	}
+
+	tmpDockerfile := filepath.Join(dir, "Dockerfile")
+	if err := os.WriteFile(tmpDockerfile, []byte(dockerfile), 0644); err != nil {
+		return nil, err
+	}
+
+	if err := s.gitHandler.Packages().Push(dir); err != nil {
+		return nil, err
+	}
+
+	return &proto.PushPackageResponse{
+		Status: http.StatusOK,
+	}, nil
 }
 
 func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
 	path := req.Workdir + "/" + req.Tag + "/Dockerfile"
 	file := bytes.Trim(req.Dockerfile, "\x00")
 
-	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file); err != nil {
+	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file, nil); err != nil {
 		return nil, err
 	}
 
@@ -52,12 +98,23 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	file := bytes.Trim(req.Content, "\x00")
 
 	fmt.Print(file)
-	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file); err != nil {
+	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file, nil); err != nil {
 		return nil, err
 	}
 
 	return &proto.CreatePackageVersionResponse{
 		Status: http.StatusCreated,
+	}, nil
+}
+
+func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
+	if err := s.gitHandler.Packages().Delete(req.PkgID.Name, req.PkgID.Tag); err != nil {
+		return nil, err
+	}
+
+	ctx.Done()
+	return &proto.DeletePackageResponse{
+		Status: http.StatusOK,
 	}, nil
 }
 
@@ -86,31 +143,6 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 	}, nil
 }
 
-func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequest) (*proto.GetContainersResponse, error) {
-	containers, err := s.docker.Container().GetAll(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var resSlice []*proto.Container
-	for _, c := range containers {
-		resSlice = append(resSlice, &proto.Container{
-			Id:      c.ID,
-			Image:   c.Image,
-			Status:  c.Status,
-			Command: c.Command,
-			Created: c.Created,
-			State:   c.State,
-			Names:   c.Names,
-		})
-	}
-
-	return &proto.GetContainersResponse{
-		Containers: resSlice,
-	}, nil
-}
-
 func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
 	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name)
 	if err != nil {
@@ -119,6 +151,13 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 
 	versionSlice := make([]*proto.PackageVersion, len(c.Dir))
 	for index, dir := range c.Dir {
+		pkg, err := s.gitHandler.Packages().Get(req.Name, *dir.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Print(pkg)
+
 		versionSlice[index] = &proto.PackageVersion{
 			Name: *dir.Name,
 			Path: *dir.Path,
@@ -148,8 +187,33 @@ func (s *Server) GetPackageFile(ctx context.Context, req *proto.GetPackageFileRe
 	}, nil
 }
 
+func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequest) (*proto.GetContainersResponse, error) {
+	containers, err := s.dockerHandler.Container().GetAll(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var resSlice []*proto.Container
+	for _, c := range containers {
+		resSlice = append(resSlice, &proto.Container{
+			Id:      c.ID,
+			Image:   c.Image,
+			Status:  c.Status,
+			Command: c.Command,
+			Created: c.Created,
+			State:   c.State,
+			Names:   c.Names,
+		})
+	}
+
+	return &proto.GetContainersResponse{
+		Containers: resSlice,
+	}, nil
+}
+
 func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLogsRequest) (*proto.GetContainerLogsResponse, error) {
-	logs, err := s.docker.Container().GetLogs(req.ContainerId, ctx)
+	logs, err := s.dockerHandler.Container().GetLogs(req.ContainerId, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,53 +231,11 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 }
 
 func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainerRequest) (*proto.DeleteContainerResponse, error) {
-	if err := s.docker.Container().Delete(req.ContainerId, ctx); err != nil {
+	if err := s.dockerHandler.Container().Delete(req.ContainerId, ctx); err != nil {
 		return nil, err
 	}
 
 	return &proto.DeleteContainerResponse{
-		Status: http.StatusOK,
-	}, nil
-}
-
-func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
-	if err := s.pkg.Delete(req.Id, ctx); err != nil {
-		return nil, err
-	}
-
-	return &proto.DeletePackageResponse{
-		Status: http.StatusOK,
-	}, nil
-}
-
-func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
-	path := req.Name + "/" + strconv.FormatInt(req.Tag, 10) + "/Makefile"
-
-	buf, err := s.gitHandler.Templates().CreateMakefile(req.Name, req.Tag)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := os.WriteFile("/tmp/"+req.VersionSHA, buf.Bytes(), 0644); err != nil {
-		return nil, err
-	}
-
-	if pErr := s.gitHandler.Repositories().
-		PutContents(ctx, "container-images", path, buf.Bytes()); pErr != nil {
-		return nil, pErr
-	}
-
-	return &proto.PushPackageResponse{
-		Status: http.StatusOK,
-	}, nil
-}
-
-func (s *Server) ContainerPackage(ctx context.Context, req *proto.ContainerPackageRequest) (*proto.ContainerPackageResponse, error) {
-	if err := s.pkg.CreateContainer(req.Id, req.Name, ctx); err != nil {
-		return nil, err
-	}
-
-	return &proto.ContainerPackageResponse{
 		Status: http.StatusOK,
 	}, nil
 }

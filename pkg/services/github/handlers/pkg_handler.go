@@ -1,4 +1,4 @@
-package github
+package handlers
 
 import (
 	"encoding/json"
@@ -10,28 +10,36 @@ import (
 )
 
 type PackageHandler interface {
-	GetOne(pkgName string) (*types.GitPackage, error)
-	Delete(pkgName string) error
+	Get(name string, tag string) (*types.GitPackage, error)
+	Push(path string) (err error)
+	Delete(name string, tag string) (err error)
 }
 
 type packageHandler struct {
 	PackageHandler
-	client    *github.Client
-	rawClient *http.Client
-	config    config.GithubConfig
+	client      *github.Client
+	config      config.GithubConfig
+	execHandler ExecHandler
 }
 
-func NewPackageHandler(cli *github.Client, c config.GithubConfig) PackageHandler {
-
+func NewPackageHandler(cli *github.Client, c config.GithubConfig, execHandler ExecHandler) PackageHandler {
 	return &packageHandler{
-		client:    cli,
-		rawClient: cli.Client(),
-		config:    c,
+		execHandler: execHandler,
+		client:      cli,
+		config:      c,
 	}
 }
 
-func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
-	res, err := h.query("GET", "packages/container/"+pkgName)
+func (h *packageHandler) Push(path string) (err error) {
+	err = h.execHandler.RunMakefile(path, "create")
+	err = h.execHandler.RunMakefile(path, "tag")
+	err = h.execHandler.RunMakefile(path, "push")
+
+	return
+}
+
+func (h *packageHandler) Get(name string, tag string) (*types.GitPackage, error) {
+	res, err := h.query("GET", "packages/container/"+name)
 	if err != nil {
 		panic(err)
 	}
@@ -56,8 +64,8 @@ func (h *packageHandler) GetOne(pkgName string) (*types.GitPackage, error) {
 	return pkg, nil
 }
 
-func (h *packageHandler) Delete(pkgName string) error {
-	_, err := h.query("DELETE", "packages/container/"+pkgName)
+func (h *packageHandler) Delete(name string, tag string) error {
+	_, err := h.query("DELETE", "packages/container/"+name+"/versions"+tag)
 	if err != nil {
 		return err
 	}
@@ -75,7 +83,7 @@ func (h *packageHandler) query(method string, path string) (*http.Response, erro
 		return nil, err
 	}
 
-	res, err := h.rawClient.Do(req)
+	res, err := h.client.Client().Do(req)
 	if err != nil {
 		return nil, err
 	}

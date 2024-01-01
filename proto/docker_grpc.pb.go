@@ -32,7 +32,7 @@ type DockerServiceClient interface {
 	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
 	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
 	CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error)
-	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
+	DeletePackageVersion(ctx context.Context, in *DeletePackageVersionRequest, opts ...grpc.CallOption) (*DeletePackageVersionResponse, error)
 }
 
 type dockerServiceClient struct {
@@ -133,9 +133,9 @@ func (c *dockerServiceClient) CreatePackageVersion(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *dockerServiceClient) DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error) {
-	out := new(DeletePackageResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/DeletePackage", in, out, opts...)
+func (c *dockerServiceClient) DeletePackageVersion(ctx context.Context, in *DeletePackageVersionRequest, opts ...grpc.CallOption) (*DeletePackageVersionResponse, error) {
+	out := new(DeletePackageVersionResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/DeletePackageVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ type DockerServiceServer interface {
 	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
 	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
 	CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error)
-	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
+	DeletePackageVersion(context.Context, *DeletePackageVersionRequest) (*DeletePackageVersionResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
 }
 
@@ -194,8 +194,8 @@ func (UnimplementedDockerServiceServer) CreatePackage(context.Context, *CreatePa
 func (UnimplementedDockerServiceServer) CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePackageVersion not implemented")
 }
-func (UnimplementedDockerServiceServer) DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePackage not implemented")
+func (UnimplementedDockerServiceServer) DeletePackageVersion(context.Context, *DeletePackageVersionRequest) (*DeletePackageVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePackageVersion not implemented")
 }
 func (UnimplementedDockerServiceServer) mustEmbedUnimplementedDockerServiceServer() {}
 
@@ -390,20 +390,20 @@ func _DockerService_CreatePackageVersion_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DockerService_DeletePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeletePackageRequest)
+func _DockerService_DeletePackageVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePackageVersionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DockerServiceServer).DeletePackage(ctx, in)
+		return srv.(DockerServiceServer).DeletePackageVersion(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.DockerService/DeletePackage",
+		FullMethod: "/docker.DockerService/DeletePackageVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).DeletePackage(ctx, req.(*DeletePackageRequest))
+		return srv.(DockerServiceServer).DeletePackageVersion(ctx, req.(*DeletePackageVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -456,8 +456,8 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DockerService_CreatePackageVersion_Handler,
 		},
 		{
-			MethodName: "DeletePackage",
-			Handler:    _DockerService_DeletePackage_Handler,
+			MethodName: "DeletePackageVersion",
+			Handler:    _DockerService_DeletePackageVersion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

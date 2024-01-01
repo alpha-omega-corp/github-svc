@@ -1,4 +1,4 @@
-package github
+package handlers
 
 import (
 	"context"
@@ -22,7 +22,7 @@ type PackageFile struct {
 type RepositoryHandler interface {
 	GetPackageFiles(ctx context.Context, name string) ([]*PackageFile, error)
 	GetContents(ctx context.Context, repo string, path string) (content *Content, err error)
-	PutContents(ctx context.Context, repo string, path string, content []byte) error
+	PutContents(ctx context.Context, repo string, path string, content []byte, sha *string) error
 	GetAll(ctx context.Context) ([]*github.Repository, error)
 }
 
@@ -93,10 +93,11 @@ func (h *repositoryHandler) GetContents(ctx context.Context, repo string, path s
 	}, nil
 }
 
-func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path string, content []byte) error {
+func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path string, content []byte, sha *string) error {
 	_, _, err := h.client.Repositories.CreateFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
 		Message: github.String("Webhook: Action"),
 		Content: content,
+		SHA:     sha,
 	})
 	if err != nil {
 		return err
