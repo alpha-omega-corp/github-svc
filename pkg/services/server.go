@@ -112,8 +112,16 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 		return nil, err
 	}
 
-	if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, req.Name+"/"+req.Tag, req.Sha); err != nil {
+	path := req.Name + "/" + req.Tag
+	files, err := s.gitHandler.Repositories().GetPackageFiles(ctx, path)
+	if err != nil {
 		return nil, err
+	}
+
+	for _, file := range files {
+		if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, path, file.SHA); err != nil {
+			return nil, err
+		}
 	}
 
 	return &proto.DeletePackageResponse{
