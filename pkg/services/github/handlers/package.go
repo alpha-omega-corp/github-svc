@@ -7,10 +7,12 @@ import (
 	"github.com/google/go-github/v56/github"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type PackageHandler interface {
-	Get(name string, tag string) (*types.GitPackage, error)
+	GetVersions(name string) ([]types.GitPackageVersion, error)
+	GetVersion(name string, vId int64) (*types.GitPackageVersion, error)
 	Push(path string) (err error)
 	Delete(name string, tag string) (err error)
 }
@@ -38,8 +40,35 @@ func (h *packageHandler) Push(path string) (err error) {
 	return
 }
 
-func (h *packageHandler) Get(name string, tag string) (*types.GitPackage, error) {
-	res, err := h.query("GET", "packages/container/"+name)
+func (h *packageHandler) GetVersions(name string) ([]types.GitPackageVersion, error) {
+	res, err := h.query("GET", "packages/container/"+name+"/versions")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(res.Body)
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var versions []types.GitPackageVersion
+	if errBuf := json.Unmarshal(body, &versions); err != nil {
+		return nil, errBuf
+	}
+
+	return versions, nil
+}
+
+func (h *packageHandler) GetVersion(name string, vId int64) (*types.GitPackageVersion, error) {
+	path := "packages/container/" + name + "/versions/" + strconv.FormatInt(vId, 10)
+	res, err := h.query("GET", path)
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +85,7 @@ func (h *packageHandler) Get(name string, tag string) (*types.GitPackage, error)
 		return nil, err
 	}
 
-	pkg := new(types.GitPackage)
+	pkg := new(types.GitPackageVersion)
 	if errBuf := json.Unmarshal(body, &pkg); err != nil {
 		return nil, errBuf
 	}

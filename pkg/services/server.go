@@ -119,7 +119,7 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 	}
 
 	for _, file := range files {
-		if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, path, file.SHA); err != nil {
+		if err := s.gitHandler.Repositories().DeleteContents(ctx, repository, path+"/"+file.Name, file.SHA); err != nil {
 			return nil, err
 		}
 	}
@@ -160,31 +160,32 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
-	versionSlice := make([]*proto.PackageVersion, len(c.Dir))
-	for index, dir := range c.Dir {
-		pkg, err := s.gitHandler.Packages().Get(req.Name, *dir.Name)
-		if err != nil {
-			return nil, err
-		}
+	versions, err := s.gitHandler.Packages().GetVersions(req.Name)
+	if err != nil {
+		return nil, err
+	}
 
-		versionSlice[index] = &proto.PackageVersion{
+	versionMap := make(map[string]int64)
+	versionSlice := make([]*proto.PackageVersion, len(c.Dir))
+
+	for _, version := range versions {
+		for _, tag := range version.Metadata.Container.Tags {
+			versionMap[tag] = version.Id
+		}
+	}
+
+	for index, dir := range c.Dir {
+		vId := versionMap[*dir.Name]
+
+		pkg := &proto.PackageVersion{
+			Id:   vId,
 			Name: *dir.Name,
 			Path: *dir.Path,
 			Sha:  *dir.SHA,
 			Link: *dir.HTMLURL,
-			Package: &proto.GitPackage{
-				Id:        pkg.Id,
-				Name:      pkg.Name,
-				Type:      pkg.Type,
-				Version:   pkg.Version,
-				Url:       pkg.Url,
-				HtmlUrl:   pkg.HtmlUrl,
-				OwnerId:   pkg.Owner.Id,
-				OwnerName: pkg.Owner.Name,
-				OwnerType: pkg.Owner.Type,
-				OwnerNode: pkg.Owner.NodeId,
-			},
 		}
+
+		versionSlice[index] = pkg
 	}
 
 	return &proto.GetPackageResponse{
