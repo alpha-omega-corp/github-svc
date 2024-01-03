@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/alpha-omega-corp/docker-svc/pkg/models"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/alpha-omega-corp/services/server"
 	"github.com/docker/docker/api/types"
@@ -18,9 +17,9 @@ import (
 )
 
 type ContainerHandler interface {
-	CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error
+	CreateFrom(ctx context.Context, path string, name string) error
 	GetAll(ctx context.Context) ([]types.Container, error)
-	GetAllFrom(pkg *models.ContainerPackage, ctx context.Context) ([]types.Container, error)
+	GetAllFrom(ctx context.Context, path string) ([]types.Container, error)
 	Delete(containerId string, ctx context.Context) error
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
@@ -99,20 +98,20 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 	return nil
 }
 
-func (h *containerHandler) GetAllFrom(pkg *models.ContainerPackage, ctx context.Context) ([]types.Container, error) {
-	f := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(pkg)})
+func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]types.Container, error) {
+	f := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(path)})
 	return h.client.ContainerList(ctx, types.ContainerListOptions{Filters: f})
 }
 
-func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctName string, ctx context.Context) error {
-	imgName := h.imageName(pkg)
+func (h *containerHandler) CreateFrom(ctx context.Context, path string, name string) error {
+	imgName := h.imageName(path)
 	if err := h.PullImage(imgName, ctx); err != nil {
 		return err
 	}
 
 	resp, err := h.client.ContainerCreate(ctx, &container.Config{
 		Image: imgName,
-	}, nil, nil, nil, ctName)
+	}, nil, nil, nil, name)
 	if err != nil {
 		panic(err)
 	}
@@ -124,6 +123,6 @@ func (h *containerHandler) CreateFrom(pkg *models.ContainerPackage, ctName strin
 	return nil
 }
 
-func (h *containerHandler) imageName(pkg *models.ContainerPackage) string {
-	return h.config.Organization.Registry + "/" + h.config.Organization.Name + "/" + pkg.Name + ":" + pkg.Tag
+func (h *containerHandler) imageName(path string) string {
+	return h.config.Organization.Registry + "/" + h.config.Organization.Name + "/" + path
 }

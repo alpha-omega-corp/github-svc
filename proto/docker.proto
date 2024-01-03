@@ -15,8 +15,19 @@ service DockerService {
   rpc GetPackageFile(GetPackageFileRequest) returns (GetPackageFileResponse) {}
   rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
   rpc CreatePackageVersion(CreatePackageVersionRequest) returns (CreatePackageVersionResponse) {}
+  rpc CreatePackageContainer(CreatePackageContainerRequest) returns (CreatePackageContainerResponse) {}
   rpc DeletePackage(DeletePackageRequest) returns (DeletePackageResponse) {}
 }
+
+message CreatePackageContainerRequest {
+  string path = 1;
+  string name = 2;
+}
+
+message CreatePackageContainerResponse {
+  int64 status = 1;
+}
+
 
 message DeletePackageResponse {
   int64 status = 1;

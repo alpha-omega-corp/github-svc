@@ -32,6 +32,16 @@ func NewServer(db *bun.DB) *Server {
 	}
 }
 
+func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePackageContainerRequest) (*proto.CreatePackageContainerResponse, error) {
+	if err := s.dockerHandler.Container().CreateFrom(ctx, req.Path, req.Name); err != nil {
+		return nil, err
+	}
+
+	return &proto.CreatePackageContainerResponse{
+		Status: http.StatusCreated,
+	}, nil
+}
+
 func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
 	buf, err := s.gitHandler.Templates().CreateMakefile(req.Name, req.Tag)
 	if err != nil {
@@ -97,7 +107,6 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	path := req.Name + "/" + req.Tag + "/Dockerfile"
 	file := bytes.Trim(req.Content, "\x00")
 
-	fmt.Print(file)
 	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file, nil); err != nil {
 		return nil, err
 	}
@@ -113,6 +122,7 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 	}
 
 	path := req.Name + "/" + req.Tag
+	fmt.Print(path)
 	files, err := s.gitHandler.Repositories().GetPackageFiles(ctx, path)
 	if err != nil {
 		return nil, err
@@ -130,7 +140,6 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 }
 
 func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
-
 	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
 	if err != nil {
 		return nil, err
@@ -148,7 +157,6 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 		}
 	}
 
-	fmt.Print(resSlice)
 	return &proto.GetPackagesResponse{
 		Packages: resSlice,
 	}, nil
@@ -167,7 +175,6 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 
 	versionMap := make(map[string]int64)
 	versionSlice := make([]*proto.PackageVersion, len(c.Dir))
-
 	for _, version := range versions {
 		for _, tag := range version.Metadata.Container.Tags {
 			versionMap[tag] = version.Id
@@ -178,7 +185,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		vId := versionMap[*dir.Name]
 
 		pkg := &proto.PackageVersion{
-			Id:   vId,
+			Id:   &vId,
 			Name: *dir.Name,
 			Path: *dir.Path,
 			Sha:  *dir.SHA,

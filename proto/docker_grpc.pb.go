@@ -32,6 +32,7 @@ type DockerServiceClient interface {
 	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
 	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
 	CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error)
+	CreatePackageContainer(ctx context.Context, in *CreatePackageContainerRequest, opts ...grpc.CallOption) (*CreatePackageContainerResponse, error)
 	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
 }
 
@@ -133,6 +134,15 @@ func (c *dockerServiceClient) CreatePackageVersion(ctx context.Context, in *Crea
 	return out, nil
 }
 
+func (c *dockerServiceClient) CreatePackageContainer(ctx context.Context, in *CreatePackageContainerRequest, opts ...grpc.CallOption) (*CreatePackageContainerResponse, error) {
+	out := new(CreatePackageContainerResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/CreatePackageContainer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerServiceClient) DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error) {
 	out := new(DeletePackageResponse)
 	err := c.cc.Invoke(ctx, "/docker.DockerService/DeletePackage", in, out, opts...)
@@ -156,6 +166,7 @@ type DockerServiceServer interface {
 	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
 	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
 	CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error)
+	CreatePackageContainer(context.Context, *CreatePackageContainerRequest) (*CreatePackageContainerResponse, error)
 	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
 	mustEmbedUnimplementedDockerServiceServer()
 }
@@ -193,6 +204,9 @@ func (UnimplementedDockerServiceServer) CreatePackage(context.Context, *CreatePa
 }
 func (UnimplementedDockerServiceServer) CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePackageVersion not implemented")
+}
+func (UnimplementedDockerServiceServer) CreatePackageContainer(context.Context, *CreatePackageContainerRequest) (*CreatePackageContainerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePackageContainer not implemented")
 }
 func (UnimplementedDockerServiceServer) DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePackage not implemented")
@@ -390,6 +404,24 @@ func _DockerService_CreatePackageVersion_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_CreatePackageContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePackageContainerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).CreatePackageContainer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/CreatePackageContainer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).CreatePackageContainer(ctx, req.(*CreatePackageContainerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerService_DeletePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeletePackageRequest)
 	if err := dec(in); err != nil {
@@ -454,6 +486,10 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePackageVersion",
 			Handler:    _DockerService_CreatePackageVersion_Handler,
+		},
+		{
+			MethodName: "CreatePackageContainer",
+			Handler:    _DockerService_CreatePackageContainer_Handler,
 		},
 		{
 			MethodName: "DeletePackage",
