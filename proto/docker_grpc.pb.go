@@ -30,7 +30,7 @@ type DockerServiceClient interface {
 	GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error)
 	GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error)
 	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
-	GetPackageVersionContainer(ctx context.Context, in *GetPackageVersionContainerRequest, opts ...grpc.CallOption) (*GetPackageVersionContainerResponse, error)
+	GetPackageVersionContainers(ctx context.Context, in *GetPackageVersionContainersRequest, opts ...grpc.CallOption) (*GetPackageVersionContainersResponse, error)
 	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
 	CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error)
 	CreatePackageContainer(ctx context.Context, in *CreatePackageContainerRequest, opts ...grpc.CallOption) (*CreatePackageContainerResponse, error)
@@ -117,9 +117,9 @@ func (c *dockerServiceClient) GetPackageFile(ctx context.Context, in *GetPackage
 	return out, nil
 }
 
-func (c *dockerServiceClient) GetPackageVersionContainer(ctx context.Context, in *GetPackageVersionContainerRequest, opts ...grpc.CallOption) (*GetPackageVersionContainerResponse, error) {
-	out := new(GetPackageVersionContainerResponse)
-	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackageVersionContainer", in, out, opts...)
+func (c *dockerServiceClient) GetPackageVersionContainers(ctx context.Context, in *GetPackageVersionContainersRequest, opts ...grpc.CallOption) (*GetPackageVersionContainersResponse, error) {
+	out := new(GetPackageVersionContainersResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackageVersionContainers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ type DockerServiceServer interface {
 	GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error)
 	GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error)
 	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
-	GetPackageVersionContainer(context.Context, *GetPackageVersionContainerRequest) (*GetPackageVersionContainerResponse, error)
+	GetPackageVersionContainers(context.Context, *GetPackageVersionContainersRequest) (*GetPackageVersionContainersResponse, error)
 	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
 	CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error)
 	CreatePackageContainer(context.Context, *CreatePackageContainerRequest) (*CreatePackageContainerResponse, error)
@@ -210,8 +210,8 @@ func (UnimplementedDockerServiceServer) GetPackage(context.Context, *GetPackageR
 func (UnimplementedDockerServiceServer) GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPackageFile not implemented")
 }
-func (UnimplementedDockerServiceServer) GetPackageVersionContainer(context.Context, *GetPackageVersionContainerRequest) (*GetPackageVersionContainerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPackageVersionContainer not implemented")
+func (UnimplementedDockerServiceServer) GetPackageVersionContainers(context.Context, *GetPackageVersionContainersRequest) (*GetPackageVersionContainersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackageVersionContainers not implemented")
 }
 func (UnimplementedDockerServiceServer) CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePackage not implemented")
@@ -382,20 +382,20 @@ func _DockerService_GetPackageFile_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DockerService_GetPackageVersionContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPackageVersionContainerRequest)
+func _DockerService_GetPackageVersionContainers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageVersionContainersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DockerServiceServer).GetPackageVersionContainer(ctx, in)
+		return srv.(DockerServiceServer).GetPackageVersionContainers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.DockerService/GetPackageVersionContainer",
+		FullMethod: "/docker.DockerService/GetPackageVersionContainers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerServiceServer).GetPackageVersionContainer(ctx, req.(*GetPackageVersionContainerRequest))
+		return srv.(DockerServiceServer).GetPackageVersionContainers(ctx, req.(*GetPackageVersionContainersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -512,8 +512,8 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DockerService_GetPackageFile_Handler,
 		},
 		{
-			MethodName: "GetPackageVersionContainer",
-			Handler:    _DockerService_GetPackageVersionContainer_Handler,
+			MethodName: "GetPackageVersionContainers",
+			Handler:    _DockerService_GetPackageVersionContainers_Handler,
 		},
 		{
 			MethodName: "CreatePackage",
