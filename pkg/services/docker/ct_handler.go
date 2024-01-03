@@ -14,6 +14,7 @@ import (
 	_ "github.com/spf13/viper/remote"
 	"github.com/uptrace/bun"
 	"io"
+	"strings"
 )
 
 type ContainerHandler interface {
@@ -124,5 +125,5 @@ func (h *containerHandler) CreateFrom(ctx context.Context, path string, name str
 }
 
 func (h *containerHandler) imageName(path string) string {
-	return h.config.Organization.Registry + "/" + h.config.Organization.Name + "/" + path
+	return h.config.Organization.Registry + "/" + h.config.Organization.Name + "/" + strings.Replace(path, "/", ":", 1)
 }

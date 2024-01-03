@@ -42,6 +42,16 @@ func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePa
 	}, nil
 }
 
+func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.GetPackageVersionContainerRequest) (*proto.GetPackageVersionContainerResponse, error) {
+	res, err := s.dockerHandler.Container().GetAllFrom(ctx, req.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Print(res)
+	return nil, nil
+}
+
 func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
 	buf, err := s.gitHandler.Templates().CreateMakefile(req.Name, req.Tag)
 	if err != nil {
@@ -256,15 +266,5 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 
 	return &proto.GetContainerLogsResponse{
 		Logs: logsBuffer.String(),
-	}, nil
-}
-
-func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainerRequest) (*proto.DeleteContainerResponse, error) {
-	if err := s.dockerHandler.Container().Delete(req.ContainerId, ctx); err != nil {
-		return nil, err
-	}
-
-	return &proto.DeleteContainerResponse{
-		Status: http.StatusOK,
 	}, nil
 }
