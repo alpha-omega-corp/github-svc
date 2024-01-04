@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/github"
 	"github.com/alpha-omega-corp/docker-svc/proto"
@@ -29,6 +30,17 @@ func NewServer(db *bun.DB) *Server {
 		gitHandler:    github.NewHandler(),
 		dockerHandler: docker.NewHandler(db),
 	}
+}
+
+func (s *Server) GetPackageTags(ctx context.Context, req *proto.GetPackageTagsRequest) (*proto.GetPackageTagsResponse, error) {
+	res, err := s.gitHandler.Packages().GetVersions(req.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Print(res)
+
+	return nil, nil
 }
 
 func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePackageContainerRequest) (*proto.CreatePackageContainerResponse, error) {
@@ -59,6 +71,8 @@ func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.Get
 			Created: container.Created,
 		}
 	}
+
+	fmt.Print(resSlice)
 
 	return &proto.GetPackageVersionContainersResponse{
 		Containers: resSlice,
@@ -109,7 +123,7 @@ func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest)
 	}
 
 	return &proto.PushPackageResponse{
-		Status: http.StatusOK,
+		Status: http.StatusCreated,
 	}, nil
 }
 

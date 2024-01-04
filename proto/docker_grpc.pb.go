@@ -29,6 +29,7 @@ type DockerServiceClient interface {
 	GetContainerLogs(ctx context.Context, in *GetContainerLogsRequest, opts ...grpc.CallOption) (*GetContainerLogsResponse, error)
 	GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error)
 	GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error)
+	GetPackageTags(ctx context.Context, in *GetPackageTagsRequest, opts ...grpc.CallOption) (*GetPackageTagsResponse, error)
 	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
 	GetPackageVersionContainers(ctx context.Context, in *GetPackageVersionContainersRequest, opts ...grpc.CallOption) (*GetPackageVersionContainersResponse, error)
 	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
@@ -108,6 +109,15 @@ func (c *dockerServiceClient) GetPackage(ctx context.Context, in *GetPackageRequ
 	return out, nil
 }
 
+func (c *dockerServiceClient) GetPackageTags(ctx context.Context, in *GetPackageTagsRequest, opts ...grpc.CallOption) (*GetPackageTagsResponse, error) {
+	out := new(GetPackageTagsResponse)
+	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackageTags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerServiceClient) GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error) {
 	out := new(GetPackageFileResponse)
 	err := c.cc.Invoke(ctx, "/docker.DockerService/GetPackageFile", in, out, opts...)
@@ -173,6 +183,7 @@ type DockerServiceServer interface {
 	GetContainerLogs(context.Context, *GetContainerLogsRequest) (*GetContainerLogsResponse, error)
 	GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error)
 	GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error)
+	GetPackageTags(context.Context, *GetPackageTagsRequest) (*GetPackageTagsResponse, error)
 	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
 	GetPackageVersionContainers(context.Context, *GetPackageVersionContainersRequest) (*GetPackageVersionContainersResponse, error)
 	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
@@ -206,6 +217,9 @@ func (UnimplementedDockerServiceServer) GetPackages(context.Context, *GetPackage
 }
 func (UnimplementedDockerServiceServer) GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPackage not implemented")
+}
+func (UnimplementedDockerServiceServer) GetPackageTags(context.Context, *GetPackageTagsRequest) (*GetPackageTagsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackageTags not implemented")
 }
 func (UnimplementedDockerServiceServer) GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPackageFile not implemented")
@@ -364,6 +378,24 @@ func _DockerService_GetPackage_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerService_GetPackageTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerServiceServer).GetPackageTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.DockerService/GetPackageTags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerServiceServer).GetPackageTags(ctx, req.(*GetPackageTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerService_GetPackageFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPackageFileRequest)
 	if err := dec(in); err != nil {
@@ -506,6 +538,10 @@ var DockerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPackage",
 			Handler:    _DockerService_GetPackage_Handler,
+		},
+		{
+			MethodName: "GetPackageTags",
+			Handler:    _DockerService_GetPackageTags_Handler,
 		},
 		{
 			MethodName: "GetPackageFile",

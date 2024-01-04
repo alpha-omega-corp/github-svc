@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/alpha-omega-corp/services/server"
 	"github.com/docker/docker/api/types"
@@ -52,7 +53,6 @@ func (h *containerHandler) Delete(ctx context.Context, cId string) error {
 	return h.client.ContainerRemove(ctx, cId, types.ContainerRemoveOptions{
 		Force: true,
 	})
-
 }
 
 func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error) {
@@ -100,6 +100,7 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 }
 
 func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]types.Container, error) {
+	fmt.Print(h.imageName(path))
 	filter := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(path)})
 	return h.client.ContainerList(ctx, types.ContainerListOptions{
 		All:     true,
@@ -108,12 +109,12 @@ func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]types
 }
 
 func (h *containerHandler) CreateFrom(ctx context.Context, path string, name string) error {
-
 	imgName := h.imageName(path)
 	if err := h.PullImage(imgName, ctx); err != nil {
 		return err
 	}
 
+	fmt.Print(imgName)
 	resp, err := h.client.ContainerCreate(ctx, &container.Config{
 		Image: imgName,
 	}, nil, nil, nil, name)

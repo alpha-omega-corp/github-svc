@@ -12,12 +12,26 @@ service DockerService {
 
   rpc GetPackages(GetPackagesRequest) returns (GetPackagesResponse) {}
   rpc GetPackage(GetPackageRequest) returns (GetPackageResponse) {}
+  rpc GetPackageTags(GetPackageTagsRequest) returns (GetPackageTagsResponse) {}
   rpc GetPackageFile(GetPackageFileRequest) returns (GetPackageFileResponse) {}
   rpc GetPackageVersionContainers(GetPackageVersionContainersRequest) returns (GetPackageVersionContainersResponse) {}
   rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
   rpc CreatePackageVersion(CreatePackageVersionRequest) returns (CreatePackageVersionResponse) {}
   rpc CreatePackageContainer(CreatePackageContainerRequest) returns (CreatePackageContainerResponse) {}
   rpc DeletePackage(DeletePackageRequest) returns (DeletePackageResponse) {}
+}
+
+message GetPackageTagsRequest {
+  string name = 1;
+}
+
+message GetPackageTagsResponse {
+  repeated PackageTag tags = 1;
+}
+
+message PackageTag {
+  string name = 1;
+  string tag = 2;
 }
 
 message GetPackageVersionContainersRequest {
