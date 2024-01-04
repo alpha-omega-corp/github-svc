@@ -21,7 +21,7 @@ type ContainerHandler interface {
 	CreateFrom(ctx context.Context, path string, name string) error
 	GetAll(ctx context.Context) ([]types.Container, error)
 	GetAllFrom(ctx context.Context, path string) ([]types.Container, error)
-	Delete(containerId string, ctx context.Context) error
+	Delete(ctx context.Context, cId string) error
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
 
@@ -48,8 +48,8 @@ func NewContainerHandler(cli *client.Client, db *bun.DB) ContainerHandler {
 	}
 }
 
-func (h *containerHandler) Delete(containerId string, ctx context.Context) error {
-	return h.client.ContainerRemove(ctx, containerId, types.ContainerRemoveOptions{
+func (h *containerHandler) Delete(ctx context.Context, cId string) error {
+	return h.client.ContainerRemove(ctx, cId, types.ContainerRemoveOptions{
 		Force: true,
 	})
 
@@ -100,11 +100,15 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 }
 
 func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]types.Container, error) {
-	f := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(path)})
-	return h.client.ContainerList(ctx, types.ContainerListOptions{Filters: f})
+	filter := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(path)})
+	return h.client.ContainerList(ctx, types.ContainerListOptions{
+		All:     true,
+		Filters: filter,
+	})
 }
 
 func (h *containerHandler) CreateFrom(ctx context.Context, path string, name string) error {
+
 	imgName := h.imageName(path)
 	if err := h.PullImage(imgName, ctx); err != nil {
 		return err

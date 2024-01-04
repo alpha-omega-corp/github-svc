@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/github"
 	"github.com/alpha-omega-corp/docker-svc/proto"
@@ -42,14 +41,28 @@ func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePa
 	}, nil
 }
 
-func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.GetPackageVersionContainerRequest) (*proto.GetPackageVersionContainerResponse, error) {
+func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.GetPackageVersionContainersRequest) (*proto.GetPackageVersionContainersResponse, error) {
 	res, err := s.dockerHandler.Container().GetAllFrom(ctx, req.Path)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Print(res)
-	return nil, nil
+	resSlice := make([]*proto.Container, len(res))
+	for index, container := range res {
+		resSlice[index] = &proto.Container{
+			Id:      container.ID,
+			Names:   container.Names,
+			Image:   container.Image,
+			Status:  container.Status,
+			Command: container.Command,
+			State:   container.State,
+			Created: container.Created,
+		}
+	}
+
+	return &proto.GetPackageVersionContainersResponse{
+		Containers: resSlice,
+	}, nil
 }
 
 func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
@@ -132,7 +145,6 @@ func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequ
 	}
 
 	path := req.Name + "/" + req.Tag
-	fmt.Print(path)
 	files, err := s.gitHandler.Repositories().GetPackageFiles(ctx, path)
 	if err != nil {
 		return nil, err
@@ -266,5 +278,15 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 
 	return &proto.GetContainerLogsResponse{
 		Logs: logsBuffer.String(),
+	}, nil
+}
+
+func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainerRequest) (*proto.DeleteContainerResponse, error) {
+	if err := s.dockerHandler.Container().Delete(ctx, req.ContainerId); err != nil {
+		return nil, err
+	}
+
+	return &proto.DeleteContainerResponse{
+		Status: http.StatusOK,
 	}, nil
 }
