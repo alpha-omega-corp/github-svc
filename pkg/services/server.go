@@ -38,9 +38,14 @@ func (s *Server) GetPackageTags(ctx context.Context, req *proto.GetPackageTagsRe
 		return nil, err
 	}
 
-	fmt.Print(res)
+	var resSlice []string
+	for _, version := range res {
+		resSlice = append(resSlice, version.Metadata.Container.Tags...)
+	}
 
-	return nil, nil
+	return &proto.GetPackageTagsResponse{
+		Tags: resSlice,
+	}, nil
 }
 
 func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePackageContainerRequest) (*proto.CreatePackageContainerResponse, error) {
