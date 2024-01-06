@@ -77,8 +77,6 @@ func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.Get
 		}
 	}
 
-	fmt.Print(resSlice)
-
 	return &proto.GetPackageVersionContainersResponse{
 		Containers: resSlice,
 	}, nil
@@ -147,9 +145,22 @@ func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequ
 
 func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePackageVersionRequest) (*proto.CreatePackageVersionResponse, error) {
 	path := req.Name + "/" + req.Tag + "/Dockerfile"
-	file := bytes.Trim(req.Content, "\x00")
+	versionContent := []byte(fmt.Sprintf("LABEL authors=\"%s\"\nLABEL org.opencontainers.image.ref.name=\"%s\"\nLABEL org.opencontainers.image.version=\"%s\"\n", "alpha-omega-corp", req.Name, req.Tag))
 
-	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file, nil); err != nil {
+	fileSize := len(versionContent) + len(req.Content)
+	cBuffer := bytes.NewBuffer(make([]byte, fileSize))
+
+	for _, fByte := range req.Content {
+		cBuffer.WriteByte(fByte)
+	}
+
+	for _, vcByte := range versionContent {
+		cBuffer.WriteByte(vcByte)
+	}
+
+	fileBytes := bytes.Trim(cBuffer.Bytes(), "\x00")
+	fmt.Print(string(cBuffer.Bytes()))
+	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, fileBytes, nil); err != nil {
 		return nil, err
 	}
 
@@ -158,7 +169,7 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	}, nil
 }
 
-func (s *Server) DeletePackage(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
+func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
 	if err := s.gitHandler.Packages().Delete(req.Name, req.Tag); err != nil {
 		return nil, err
 	}

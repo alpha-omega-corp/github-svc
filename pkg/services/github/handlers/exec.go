@@ -32,7 +32,7 @@ func (h *execHandler) RunMakefile(path string, act string) error {
 		return err
 	}
 
-	fmt.Println(string(res))
+	fmt.Print(string(res))
 
 	return nil
 }

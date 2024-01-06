@@ -46,7 +46,6 @@ func NewTemplateHandler(c config.GithubConfig) TemplateHandler {
 
 func (h *templateHandler) CreateMakefile(pkgName string, pkgTag string) (*bytes.Buffer, error) {
 	buf := &bytes.Buffer{}
-
 	if err := h.template.ExecuteTemplate(buf, "makefile.template", &types.CreateMakefileDto{
 		Registry: h.config.Organization.Registry,
 		OrgName:  h.config.Organization.Name,

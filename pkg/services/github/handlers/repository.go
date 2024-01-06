@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/google/go-github/v56/github"
 )
@@ -69,7 +68,6 @@ func (h *repositoryHandler) GetPackageFiles(ctx context.Context, name string) ([
 			return nil, err
 		}
 
-		fmt.Print(*file.SHA)
 		files[index] = &PackageFile{
 			SHA:     *file.SHA,
 			Name:    *file.Name,
@@ -108,7 +106,7 @@ func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path s
 }
 
 func (h *repositoryHandler) DeleteContents(ctx context.Context, repo string, path string, sha string) error {
-	res, _, err := h.client.Repositories.DeleteFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
+	_, _, err := h.client.Repositories.DeleteFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
 		Message: github.String("Webhook: Action"),
 		SHA:     github.String(sha),
 	})
@@ -116,8 +114,6 @@ func (h *repositoryHandler) DeleteContents(ctx context.Context, repo string, pat
 	if err != nil {
 		return err
 	}
-
-	fmt.Print(res)
 
 	return nil
 }

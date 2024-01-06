@@ -18,7 +18,7 @@ service DockerService {
   rpc CreatePackage(CreatePackageRequest) returns (CreatePackageResponse) {}
   rpc CreatePackageVersion(CreatePackageVersionRequest) returns (CreatePackageVersionResponse) {}
   rpc CreatePackageContainer(CreatePackageContainerRequest) returns (CreatePackageContainerResponse) {}
-  rpc DeletePackage(DeletePackageRequest) returns (DeletePackageResponse) {}
+  rpc DeletePackageVersion(DeletePackageVersionRequest) returns (DeletePackageVersionResponse) {}
 }
 
 message GetPackageTagsRequest {
@@ -51,15 +51,17 @@ message CreatePackageContainerResponse {
   int64 status = 1;
 }
 
+message DeletePackageVersionRequest {
+  string name= 1;
+  string tag = 2;
+  optional int64 version = 3;
+}
 
-message DeletePackageResponse {
+message DeletePackageVersionResponse {
   int64 status = 1;
 }
 
-message DeletePackageRequest {
-  string name= 1;
-  string tag = 2;
-}
+
 
 message CreatePackageVersionRequest {
   string name = 1;

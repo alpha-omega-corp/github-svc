@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/alpha-omega-corp/services/server"
 	"github.com/docker/docker/api/types"
@@ -100,7 +99,6 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 }
 
 func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]types.Container, error) {
-	fmt.Print(h.imageName(path))
 	filter := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(path)})
 	return h.client.ContainerList(ctx, types.ContainerListOptions{
 		All:     true,
@@ -114,7 +112,6 @@ func (h *containerHandler) CreateFrom(ctx context.Context, path string, name str
 		return err
 	}
 
-	fmt.Print(imgName)
 	resp, err := h.client.ContainerCreate(ctx, &container.Config{
 		Image: imgName,
 	}, nil, nil, nil, name)
