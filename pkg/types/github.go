@@ -7,6 +7,13 @@ type CreateMakefileDto struct {
 	Tag      string
 }
 
+type CreateDockerfileDto struct {
+	Name    string
+	Tag     string
+	Author  string
+	Content string
+}
+
 type GitPackage struct {
 	Id         int64  `json:"id"`
 	Name       string `json:"name"`

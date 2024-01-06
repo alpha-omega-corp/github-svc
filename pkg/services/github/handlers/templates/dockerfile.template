@@ -1,0 +1,5 @@
+{{ .Content }}
+
+LABEL authors="{{ .Author }}"
+LABEL org.opencontainers.image.ref.name="{{ .Name }}"
+LABEL org.opencontainers.image.version="{{ .Tag }}"

@@ -146,22 +146,14 @@ func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequ
 
 func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePackageVersionRequest) (*proto.CreatePackageVersionResponse, error) {
 	path := req.Name + "/" + req.Tag + "/Dockerfile"
-	versionContent := []byte(fmt.Sprintf("\nLABEL authors=\"%s\"\nLABEL org.opencontainers.image.ref.name=\"%s\"\nLABEL org.opencontainers.image.version=\"%s\"\n", "alpha-omega-corp", req.Name, req.Tag))
-
-	fileSize := len(versionContent) + len(req.Content)
-	cBuffer := bytes.NewBuffer(make([]byte, fileSize))
-
-	for _, fByte := range req.Content {
-		cBuffer.WriteByte(fByte)
+	file, err := s.gitHandler.Templates().CreateDockerfile(req.Name, req.Tag, req.Content)
+	if err != nil {
+		return nil, err
 	}
 
-	for _, vcByte := range versionContent {
-		cBuffer.WriteByte(vcByte)
-	}
+	fmt.Print(string(file.Bytes()))
 
-	fileBytes := bytes.Trim(cBuffer.Bytes(), "\x00")
-	fmt.Print(string(cBuffer.Bytes()))
-	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, fileBytes, nil); err != nil {
+	if err := s.gitHandler.Repositories().PutContents(ctx, repository, path, file.Bytes(), nil); err != nil {
 		return nil, err
 	}
 

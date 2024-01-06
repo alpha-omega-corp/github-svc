@@ -19,6 +19,7 @@ var (
 
 type TemplateHandler interface {
 	CreateMakefile(pkgName string, pkgTag string) (*bytes.Buffer, error)
+	CreateDockerfile(pkgName string, pkgTag string, content []byte) (*bytes.Buffer, error)
 }
 
 type templateHandler struct {
@@ -51,6 +52,21 @@ func (h *templateHandler) CreateMakefile(pkgName string, pkgTag string) (*bytes.
 		OrgName:  h.config.Organization.Name,
 		Name:     pkgName,
 		Tag:      pkgTag,
+	}); err != nil {
+		return nil, err
+	}
+
+	return buf, nil
+}
+
+func (h *templateHandler) CreateDockerfile(pkgName string, pkgTag string, content []byte) (*bytes.Buffer, error) {
+	buf := &bytes.Buffer{}
+
+	if err := h.template.ExecuteTemplate(buf, "dockerfile.template", &types.CreateDockerfileDto{
+		Name:    pkgName,
+		Tag:     pkgTag,
+		Author:  h.config.Organization.Name,
+		Content: string(bytes.Trim(content, "\x00")),
 	}); err != nil {
 		return nil, err
 	}

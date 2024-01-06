@@ -1,17 +1,18 @@
 package docker
 
 import (
+	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker/handlers"
 	"github.com/docker/docker/client"
 	"github.com/uptrace/bun"
 )
 
 type Handler interface {
-	Container() ContainerHandler
+	Container() handlers.ContainerHandler
 }
 
 type dockerHandler struct {
 	Handler
-	ctHandler ContainerHandler
+	ctHandler handlers.ContainerHandler
 }
 
 func NewHandler(db *bun.DB) Handler {
@@ -30,10 +31,10 @@ func NewHandler(db *bun.DB) Handler {
 	}(c)
 
 	return &dockerHandler{
-		ctHandler: NewContainerHandler(c, db),
+		ctHandler: handlers.NewContainerHandler(c, db),
 	}
 }
 
-func (h *dockerHandler) Container() ContainerHandler {
+func (h *dockerHandler) Container() handlers.ContainerHandler {
 	return h.ctHandler
 }
