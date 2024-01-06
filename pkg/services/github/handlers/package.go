@@ -14,7 +14,7 @@ type PackageHandler interface {
 	GetVersions(name string) ([]types.GitPackageVersion, error)
 	GetVersion(name string, vId int64) (*types.GitPackageVersion, error)
 	Push(path string) (err error)
-	Delete(name string, tag string) (err error)
+	Delete(name string, vId *int64) error
 }
 
 type packageHandler struct {
@@ -93,8 +93,8 @@ func (h *packageHandler) GetVersion(name string, vId int64) (*types.GitPackageVe
 	return pkg, nil
 }
 
-func (h *packageHandler) Delete(name string, tag string) error {
-	_, err := h.query("DELETE", "packages/container/"+name+"/versions"+tag)
+func (h *packageHandler) Delete(name string, vId *int64) error {
+	_, err := h.query("DELETE", "packages/container/"+name+"/versions/"+strconv.FormatInt(*vId, 10))
 	if err != nil {
 		return err
 	}

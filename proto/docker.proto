@@ -87,11 +87,13 @@ message GetPackageResponse {
 }
 
 message PackageVersion {
-  optional int64 id = 1;
-  string name = 2;
-  string path = 3;
-  string sha = 4;
-  string link = 5;
+  string repoName = 1;
+  string repoPath = 2;
+  string repoSha = 3;
+  string repoLink = 4;
+  optional int64 versionId = 5;
+  optional string versionSha = 6;
+  optional string versionLink = 7;
 }
 
 message DeleteContainerRequest {

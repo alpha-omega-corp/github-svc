@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/docker-svc/pkg/services/github"
+	"github.com/alpha-omega-corp/docker-svc/pkg/types"
 	"github.com/alpha-omega-corp/docker-svc/proto"
 	"github.com/uptrace/bun"
 	"io"
@@ -145,7 +146,7 @@ func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequ
 
 func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePackageVersionRequest) (*proto.CreatePackageVersionResponse, error) {
 	path := req.Name + "/" + req.Tag + "/Dockerfile"
-	versionContent := []byte(fmt.Sprintf("LABEL authors=\"%s\"\nLABEL org.opencontainers.image.ref.name=\"%s\"\nLABEL org.opencontainers.image.version=\"%s\"\n", "alpha-omega-corp", req.Name, req.Tag))
+	versionContent := []byte(fmt.Sprintf("\nLABEL authors=\"%s\"\nLABEL org.opencontainers.image.ref.name=\"%s\"\nLABEL org.opencontainers.image.version=\"%s\"\n", "alpha-omega-corp", req.Name, req.Tag))
 
 	fileSize := len(versionContent) + len(req.Content)
 	cBuffer := bytes.NewBuffer(make([]byte, fileSize))
@@ -169,8 +170,8 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	}, nil
 }
 
-func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageRequest) (*proto.DeletePackageResponse, error) {
-	if err := s.gitHandler.Packages().Delete(req.Name, req.Tag); err != nil {
+func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageVersionRequest) (*proto.DeletePackageVersionResponse, error) {
+	if err := s.gitHandler.Packages().Delete(req.Name, req.Version); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +187,7 @@ func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePack
 		}
 	}
 
-	return &proto.DeletePackageResponse{
+	return &proto.DeletePackageVersionResponse{
 		Status: http.StatusOK,
 	}, nil
 }
@@ -216,8 +217,11 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 
 func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
 	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name)
+
 	if err != nil {
-		return nil, err
+		return &proto.GetPackageResponse{
+			Versions: []*proto.PackageVersion{},
+		}, nil
 	}
 
 	versions, err := s.gitHandler.Packages().GetVersions(req.Name)
@@ -225,23 +229,25 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
-	versionMap := make(map[string]int64)
+	versionMap := make(map[string]types.GitPackageVersion)
 	versionSlice := make([]*proto.PackageVersion, len(c.Dir))
 	for _, version := range versions {
 		for _, tag := range version.Metadata.Container.Tags {
-			versionMap[tag] = version.Id
+			versionMap[tag] = version
 		}
 	}
 
 	for index, dir := range c.Dir {
-		vId := versionMap[*dir.Name]
+		v := versionMap[*dir.Name]
 
 		pkg := &proto.PackageVersion{
-			Id:   &vId,
-			Name: *dir.Name,
-			Path: *dir.Path,
-			Sha:  *dir.SHA,
-			Link: *dir.HTMLURL,
+			RepoName:    *dir.Name,
+			RepoPath:    *dir.Path,
+			RepoSha:     *dir.SHA,
+			RepoLink:    *dir.HTMLURL,
+			VersionId:   &v.Id,
+			VersionSha:  &v.Name,
+			VersionLink: &v.PackageHtmlUrl,
 		}
 
 		versionSlice[index] = pkg
