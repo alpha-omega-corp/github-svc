@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package docker;
-option go_package = "github.com/alpha-omega-corp/docker-svc/proto";
+option go_package = "github.com/alpha-omega-corp/github-svc/proto/docker";
 
 service DockerService {
   rpc PushPackage(PushPackageRequest) returns (PushPackageResponse) {}

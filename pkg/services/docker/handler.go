@@ -1,7 +1,7 @@
 package docker
 
 import (
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker/handlers"
+	"github.com/alpha-omega-corp/github-svc/pkg/services/docker/handlers"
 	"github.com/docker/docker/client"
 	"github.com/uptrace/bun"
 )
@@ -16,9 +16,7 @@ type dockerHandler struct {
 }
 
 func NewHandler(db *bun.DB) Handler {
-	c, err := client.NewClientWithOpts(
-		client.FromEnv, client.WithAPIVersionNegotiation())
-
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
 	}
@@ -28,10 +26,10 @@ func NewHandler(db *bun.DB) Handler {
 		if err != nil {
 			panic(err)
 		}
-	}(c)
+	}(cli)
 
 	return &dockerHandler{
-		ctHandler: handlers.NewContainerHandler(c, db),
+		ctHandler: handlers.NewContainerHandler(cli, db),
 	}
 }
 

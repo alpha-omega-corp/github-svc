@@ -32,9 +32,9 @@ type repositoryHandler struct {
 	client *github.Client
 }
 
-func NewRepositoryHandler(cli *github.Client, c config.GithubConfig) RepositoryHandler {
+func NewRepositoryHandler(config config.GithubConfig, cli *github.Client) RepositoryHandler {
 	return &repositoryHandler{
-		config: c,
+		config: config,
 		client: cli,
 	}
 }

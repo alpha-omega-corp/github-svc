@@ -31,7 +31,7 @@ func main() {
 	}(dbHandler.Database())
 
 	appCli := &cli.App{
-		Name:  "docker-svc",
+		Name:  "github-svc",
 		Usage: "bootstrap the service",
 		Commands: []*cli.Command{
 			migrateCommand(dbHandler.Database()),

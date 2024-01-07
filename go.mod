@@ -1,4 +1,4 @@
-module github.com/alpha-omega-corp/docker-svc
+module github.com/alpha-omega-corp/github-svc
 
 go 1.21
 

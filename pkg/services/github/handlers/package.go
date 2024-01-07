@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/alpha-omega-corp/docker-svc/pkg/types"
+	"github.com/alpha-omega-corp/github-svc/pkg/types"
 	"github.com/alpha-omega-corp/services/config"
 	"github.com/google/go-github/v56/github"
 	"io"
-	"net/http"
 	"strconv"
 )
 
@@ -19,16 +18,16 @@ type PackageHandler interface {
 
 type packageHandler struct {
 	PackageHandler
-	client      *github.Client
-	config      config.GithubConfig
-	execHandler ExecHandler
+	config       config.GithubConfig
+	execHandler  ExecHandler
+	queryHandler QueryHandler
 }
 
-func NewPackageHandler(cli *github.Client, c config.GithubConfig, execHandler ExecHandler) PackageHandler {
+func NewPackageHandler(config config.GithubConfig, cli *github.Client, execHandler ExecHandler) PackageHandler {
 	return &packageHandler{
-		execHandler: execHandler,
-		client:      cli,
-		config:      c,
+		config:       config,
+		queryHandler: NewQueryHandler(cli, config),
+		execHandler:  execHandler,
 	}
 }
 
@@ -41,7 +40,7 @@ func (h *packageHandler) Push(path string) (err error) {
 }
 
 func (h *packageHandler) GetVersions(name string) ([]types.GitPackageVersion, error) {
-	res, err := h.query("GET", "packages/container/"+name+"/versions")
+	res, err := h.queryHandler.query("GET", "packages/container/"+name+"/versions")
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +67,7 @@ func (h *packageHandler) GetVersions(name string) ([]types.GitPackageVersion, er
 
 func (h *packageHandler) GetVersion(name string, vId int64) (*types.GitPackageVersion, error) {
 	path := "packages/container/" + name + "/versions/" + strconv.FormatInt(vId, 10)
-	res, err := h.query("GET", path)
+	res, err := h.queryHandler.query("GET", path)
 	if err != nil {
 		panic(err)
 	}
@@ -94,28 +93,10 @@ func (h *packageHandler) GetVersion(name string, vId int64) (*types.GitPackageVe
 }
 
 func (h *packageHandler) Delete(name string, vId *int64) error {
-	_, err := h.query("DELETE", "packages/container/"+name+"/versions/"+strconv.FormatInt(*vId, 10))
+	_, err := h.queryHandler.query("DELETE", "packages/container/"+name+"/versions/"+strconv.FormatInt(*vId, 10))
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (h *packageHandler) query(method string, path string) (*http.Response, error) {
-	req, err := http.NewRequest(method, h.config.Organization.Url+path, nil)
-	req.Header.Add("Accept", "application/vnd.github+json")
-	req.Header.Add("Authorization", "Bearer "+h.config.Token)
-	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
-
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := h.client.Client().Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }

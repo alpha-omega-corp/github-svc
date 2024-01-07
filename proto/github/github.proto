@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package docker;
+option go_package = "github.com/alpha-omega-corp/github-svc/proto/github";
+
+service GithubService {
+
+  rpc GetSecrets(GetSecretsRequest) returns (GetSecretsResponse) {}
+}
+
+message GetSecretsRequest {}
+message GetSecretsResponse {
+  repeated Secret secrets = 1;
+}
+
+message Secret {
+  string name = 1;
+  string createdAt = 2;
+  string updatedAt = 3;
+  string visibility = 4;
+}

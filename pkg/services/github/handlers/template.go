@@ -3,7 +3,7 @@ package handlers
 import (
 	"bytes"
 	"embed"
-	"github.com/alpha-omega-corp/docker-svc/pkg/types"
+	"github.com/alpha-omega-corp/github-svc/pkg/types"
 	"github.com/alpha-omega-corp/services/config"
 	"io/fs"
 	"sync"

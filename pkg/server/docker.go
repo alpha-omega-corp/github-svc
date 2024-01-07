@@ -1,14 +1,15 @@
-package services
+package server
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/docker"
-	"github.com/alpha-omega-corp/docker-svc/pkg/services/github"
-	"github.com/alpha-omega-corp/docker-svc/pkg/types"
-	"github.com/alpha-omega-corp/docker-svc/proto"
+	"github.com/alpha-omega-corp/github-svc/pkg/services/docker"
+	"github.com/alpha-omega-corp/github-svc/pkg/services/github"
+	"github.com/alpha-omega-corp/github-svc/pkg/types"
+	proto "github.com/alpha-omega-corp/github-svc/proto/docker"
+	"github.com/alpha-omega-corp/services/config"
 	"github.com/uptrace/bun"
 	"io"
 	"net/http"
@@ -26,9 +27,9 @@ type Server struct {
 	dockerHandler docker.Handler
 }
 
-func NewServer(db *bun.DB) *Server {
+func NewDockerServer(config config.GithubConfig, db *bun.DB) *Server {
 	return &Server{
-		gitHandler:    github.NewHandler(),
+		gitHandler:    github.NewHandler(config),
 		dockerHandler: docker.NewHandler(db),
 	}
 }

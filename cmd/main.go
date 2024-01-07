@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/alpha-omega-corp/github-svc/pkg/server"
+	protoDocker "github.com/alpha-omega-corp/github-svc/proto/docker"
+	protoGithub "github.com/alpha-omega-corp/github-svc/proto/github"
+	"github.com/alpha-omega-corp/services/database"
+	s "github.com/alpha-omega-corp/services/server"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
-
-	"github.com/alpha-omega-corp/docker-svc/pkg/services"
-	"github.com/alpha-omega-corp/docker-svc/proto"
-	"github.com/alpha-omega-corp/services/database"
-	"github.com/alpha-omega-corp/services/server"
 	"github.com/uptrace/bun"
 	"google.golang.org/grpc"
 )
@@ -15,17 +15,24 @@ import (
 func main() {
 
 	v := viper.New()
-	cManager := server.NewConfigManager(v)
-	c, err := cManager.HostsConfig()
+	cManager := s.NewConfigManager(v)
+	cHost, err := cManager.HostsConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	dbHandler := database.NewHandler(c.Docker.Dsn)
+	dbHandler := database.NewHandler(cHost.Docker.Dsn)
 
-	if err := server.NewGRPC(c.Docker.Host, dbHandler, func(db *bun.DB, grpc *grpc.Server) {
-		s := services.NewServer(db)
-		proto.RegisterDockerServiceServer(grpc, s)
+	if err := s.NewGRPC(cHost.Docker.Host, dbHandler, func(db *bun.DB, grpc *grpc.Server) {
+		config, err := cManager.GithubConfig()
+		if err != nil {
+			panic(err)
+		}
+
+		githubServer := server.NewGithubServer(config)
+		dockerServer := server.NewDockerServer(config, db)
+		protoGithub.RegisterGithubServiceServer(grpc, githubServer)
+		protoDocker.RegisterDockerServiceServer(grpc, dockerServer)
 	}); err != nil {
 		panic(err)
 	}
