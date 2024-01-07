@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/alpha-omega-corp/docker-svc/pkg/models"
+	"github.com/alpha-omega-corp/github-svc/pkg/models"
 	"github.com/alpha-omega-corp/services/database"
 	"github.com/alpha-omega-corp/services/server"
 	"github.com/spf13/viper"

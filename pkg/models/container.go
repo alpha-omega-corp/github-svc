@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/alpha-omega-corp/docker-svc/pkg/types"
+	"github.com/alpha-omega-corp/github-svc/pkg/types"
 	dockerTypes "github.com/docker/docker/api/types"
 	"github.com/uptrace/bun"
 	"os"
