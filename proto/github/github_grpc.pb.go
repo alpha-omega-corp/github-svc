@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type GithubServiceClient interface {
 	GetSecrets(ctx context.Context, in *GetSecretsRequest, opts ...grpc.CallOption) (*GetSecretsResponse, error)
 	CreateSecret(ctx context.Context, in *CreateSecretRequest, opts ...grpc.CallOption) (*CreateSecretResponse, error)
+	DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error)
 }
 
 type githubServiceClient struct {
@@ -52,12 +53,22 @@ func (c *githubServiceClient) CreateSecret(ctx context.Context, in *CreateSecret
 	return out, nil
 }
 
+func (c *githubServiceClient) DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error) {
+	out := new(DeleteSecretResponse)
+	err := c.cc.Invoke(ctx, "/docker.GithubService/DeleteSecret", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GithubServiceServer is the server API for GithubService service.
 // All implementations must embed UnimplementedGithubServiceServer
 // for forward compatibility
 type GithubServiceServer interface {
 	GetSecrets(context.Context, *GetSecretsRequest) (*GetSecretsResponse, error)
 	CreateSecret(context.Context, *CreateSecretRequest) (*CreateSecretResponse, error)
+	DeleteSecret(context.Context, *DeleteSecretRequest) (*DeleteSecretResponse, error)
 	mustEmbedUnimplementedGithubServiceServer()
 }
 
@@ -70,6 +81,9 @@ func (UnimplementedGithubServiceServer) GetSecrets(context.Context, *GetSecretsR
 }
 func (UnimplementedGithubServiceServer) CreateSecret(context.Context, *CreateSecretRequest) (*CreateSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSecret not implemented")
+}
+func (UnimplementedGithubServiceServer) DeleteSecret(context.Context, *DeleteSecretRequest) (*DeleteSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSecret not implemented")
 }
 func (UnimplementedGithubServiceServer) mustEmbedUnimplementedGithubServiceServer() {}
 
@@ -120,6 +134,24 @@ func _GithubService_CreateSecret_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GithubService_DeleteSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).DeleteSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.GithubService/DeleteSecret",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).DeleteSecret(ctx, req.(*DeleteSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GithubService_ServiceDesc is the grpc.ServiceDesc for GithubService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +166,10 @@ var GithubService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSecret",
 			Handler:    _GithubService_CreateSecret_Handler,
+		},
+		{
+			MethodName: "DeleteSecret",
+			Handler:    _GithubService_DeleteSecret_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/alpha-omega-corp/github-svc/pkg/services/github"
 	proto "github.com/alpha-omega-corp/github-svc/proto/github"
 	svc "github.com/alpha-omega-corp/services/server"
@@ -30,7 +31,7 @@ func NewGithubServer() *GithubServer {
 }
 
 func (s *GithubServer) GetSecrets(ctx context.Context, req *proto.GetSecretsRequest) (*proto.GetSecretsResponse, error) {
-	secrets, err := s.gitHandler.Secrets().GetSecrets(ctx)
+	secrets, err := s.gitHandler.Secrets().GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +52,32 @@ func (s *GithubServer) GetSecrets(ctx context.Context, req *proto.GetSecretsRequ
 }
 
 func (s *GithubServer) CreateSecret(ctx context.Context, req *proto.CreateSecretRequest) (*proto.CreateSecretResponse, error) {
-	if err := s.gitHandler.Secrets().CreateSecret(ctx, req.Name, req.Content); err != nil {
+	if err := s.gitHandler.Secrets().Create(ctx, req.Name, req.Content); err != nil {
 		return nil, err
 	}
 
+	buffer, err := s.gitHandler.Templates().CreateConfiguration(req.Name, req.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.gitHandler.Exec().WriteConfig(buffer); err != nil {
+		return nil, err
+	}
+
+	fmt.Print()
+
 	return &proto.CreateSecretResponse{
 		Status: http.StatusCreated,
+	}, nil
+}
+
+func (s *GithubServer) DeleteSecret(ctx context.Context, req *proto.DeleteSecretRequest) (*proto.DeleteSecretResponse, error) {
+	if err := s.gitHandler.Secrets().Delete(ctx, req.Name); err != nil {
+		return nil, err
+	}
+
+	return &proto.DeleteSecretResponse{
+		Status: http.StatusOK,
 	}, nil
 }

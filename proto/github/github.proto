@@ -6,6 +6,15 @@ option go_package = "github.com/alpha-omega-corp/github-svc/proto/github";
 service GithubService {
   rpc GetSecrets(GetSecretsRequest) returns (GetSecretsResponse) {}
   rpc CreateSecret(CreateSecretRequest) returns (CreateSecretResponse) {}
+  rpc DeleteSecret(DeleteSecretRequest) returns (DeleteSecretResponse) {}
+}
+
+message DeleteSecretRequest {
+  string name = 1;
+}
+
+message DeleteSecretResponse {
+  int64 status = 1;
 }
 
 message CreateSecretRequest {
