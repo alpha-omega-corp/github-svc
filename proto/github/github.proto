@@ -7,7 +7,14 @@ service GithubService {
   rpc GetSecrets(GetSecretsRequest) returns (GetSecretsResponse) {}
   rpc CreateSecret(CreateSecretRequest) returns (CreateSecretResponse) {}
   rpc DeleteSecret(DeleteSecretRequest) returns (DeleteSecretResponse) {}
+  rpc SyncEnvironment(SyncEnvironmentRequest) returns (SyncEnvironmentResponse) {}
 }
+
+message SyncEnvironmentRequest {}
+message SyncEnvironmentResponse {
+  int64 status = 1;
+}
+
 
 message DeleteSecretRequest {
   string name = 1;
@@ -20,7 +27,6 @@ message DeleteSecretResponse {
 message CreateSecretRequest {
   string name = 1;
   bytes content = 2;
-  string fileName = 3;
 }
 
 message CreateSecretResponse {

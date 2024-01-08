@@ -3,11 +3,9 @@ package handlers
 import (
 	"bytes"
 	"embed"
-	"fmt"
 	"github.com/alpha-omega-corp/github-svc/pkg/types"
 	"github.com/alpha-omega-corp/services/config"
 	"io/fs"
-	"strings"
 	"sync"
 	"text/template"
 )
@@ -22,7 +20,7 @@ var (
 type TemplateHandler interface {
 	CreateMakefile(pkgName string, pkgTag string) (*bytes.Buffer, error)
 	CreateDockerfile(pkgName string, pkgTag string, content []byte) (*bytes.Buffer, error)
-	CreateConfiguration(name string, content []byte) (*bytes.Buffer, error)
+	CreateConfiguration(data map[string]string) (*bytes.Buffer, error)
 }
 
 type templateHandler struct {
@@ -77,17 +75,9 @@ func (h *templateHandler) CreateDockerfile(pkgName string, pkgTag string, conten
 	return buf, nil
 }
 
-func (h *templateHandler) CreateConfiguration(name string, content []byte) (*bytes.Buffer, error) {
+func (h *templateHandler) CreateConfiguration(data map[string]string) (*bytes.Buffer, error) {
 	buf := &bytes.Buffer{}
-	contentString := string(bytes.Trim(content, "\x00"))
-	inline := strings.Replace(contentString, "\n", "", -1)
-	inline = strings.Replace(inline, ",}", " }, ", -1)
-	fmt.Print(inline)
-
-	if err := h.template.ExecuteTemplate(buf, "configuration.template", &types.CreateConfigDto{
-		Name:    name,
-		Content: inline,
-	}); err != nil {
+	if err := h.template.ExecuteTemplate(buf, "configuration.template", data); err != nil {
 		return nil, err
 	}
 
