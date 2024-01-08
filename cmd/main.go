@@ -24,13 +24,9 @@ func main() {
 	dbHandler := database.NewHandler(cHost.Docker.Dsn)
 
 	if err := s.NewGRPC(cHost.Docker.Host, dbHandler, func(db *bun.DB, grpc *grpc.Server) {
-		config, err := cManager.GithubConfig()
-		if err != nil {
-			panic(err)
-		}
+		githubServer := server.NewGithubServer()
+		dockerServer := server.NewDockerServer(db)
 
-		githubServer := server.NewGithubServer(config)
-		dockerServer := server.NewDockerServer(config, db)
 		protoGithub.RegisterGithubServiceServer(grpc, githubServer)
 		protoDocker.RegisterDockerServiceServer(grpc, dockerServer)
 	}); err != nil {

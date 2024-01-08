@@ -9,7 +9,8 @@ import (
 	"github.com/alpha-omega-corp/github-svc/pkg/services/github"
 	"github.com/alpha-omega-corp/github-svc/pkg/types"
 	proto "github.com/alpha-omega-corp/github-svc/proto/docker"
-	"github.com/alpha-omega-corp/services/config"
+	svc "github.com/alpha-omega-corp/services/server"
+	"github.com/spf13/viper"
 	"github.com/uptrace/bun"
 	"io"
 	"net/http"
@@ -27,7 +28,14 @@ type Server struct {
 	dockerHandler docker.Handler
 }
 
-func NewDockerServer(config config.GithubConfig, db *bun.DB) *Server {
+func NewDockerServer(db *bun.DB) *Server {
+	v := viper.New()
+	cManager := svc.NewConfigManager(v)
+	config, err := cManager.GithubConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	return &Server{
 		gitHandler:    github.NewHandler(config),
 		dockerHandler: docker.NewHandler(db),
