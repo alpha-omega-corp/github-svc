@@ -1,1 +1,3 @@
-{{ .Name }}={{- .Content }}
+{{ range $key, $value := . }}
+{{ $key }}={{ $value }}
+{{ end }}

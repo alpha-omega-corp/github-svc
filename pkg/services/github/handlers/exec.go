@@ -5,16 +5,17 @@ import (
 	"context"
 	"fmt"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 type ExecHandler interface {
 	KvsGet(ctx context.Context, key string) (*clientv3.GetResponse, error)
 	KvsPut(ctx context.Context, key string, value string) (err error)
+	KvsDelete(ctx context.Context, key string) (err error)
 	WriteConfig(template *bytes.Buffer) error
 	RunMakefile(path string, act string) error
 }
@@ -46,7 +47,16 @@ func (h *execHandler) KvsGet(ctx context.Context, key string) (*clientv3.GetResp
 }
 
 func (h *execHandler) KvsPut(ctx context.Context, key string, value string) (err error) {
-	_, err = h.etcdClient.Put(ctx, key, value)
+	_, err = h.etcdClient.Put(ctx, strings.ToLower(key), value)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (h *execHandler) KvsDelete(ctx context.Context, key string) (err error) {
+	_, err = h.etcdClient.Delete(ctx, key)
 	if err != nil {
 		return
 	}
@@ -55,23 +65,7 @@ func (h *execHandler) KvsPut(ctx context.Context, key string, value string) (err
 }
 
 func (h *execHandler) WriteConfig(template *bytes.Buffer) error {
-	f, err := os.OpenFile("/home/nanstis/.config/act/.test", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}(f)
-
-	if _, err := f.WriteString(template.String() + "\n"); err != nil {
-		log.Println(err)
-	}
-
-	return nil
+	return os.WriteFile("/home/nanstis/.config/act/.secrets", template.Bytes(), 0644)
 }
 
 func (h *execHandler) RunMakefile(path string, act string) error {

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 	"net/http"
+	"strings"
 )
 
 type GithubServer struct {
@@ -29,6 +30,17 @@ func NewGithubServer() *GithubServer {
 	}
 }
 
+func (s *GithubServer) GetSecretContent(ctx context.Context, req *proto.GetSecretContentRequest) (*proto.GetSecretContentResponse, error) {
+	res, err := s.gitHandler.Exec().KvsGet(ctx, strings.ToLower(req.Name))
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.GetSecretContentResponse{
+		Content: res.Kvs[0].Value,
+	}, nil
+}
+
 func (s *GithubServer) SyncEnvironment(ctx context.Context, req *proto.SyncEnvironmentRequest) (*proto.SyncEnvironmentResponse, error) {
 	secrets, err := s.gitHandler.Secrets().GetAll(ctx)
 	if err != nil {
@@ -37,12 +49,20 @@ func (s *GithubServer) SyncEnvironment(ctx context.Context, req *proto.SyncEnvir
 
 	env := make(map[string]string)
 	for _, secret := range secrets {
-		res, err := s.gitHandler.Exec().KvsGet(ctx, secret.Name)
+		key := strings.ToLower(secret.Name)
+		res, err := s.gitHandler.Exec().KvsGet(ctx, key)
 		if err != nil {
 			return nil, err
 		}
 
-		env[secret.Name] = string(res.Kvs[0].Value)
+		if len(res.Kvs) != 0 {
+			contentString := string(res.Kvs[0].Value)
+			inline := strings.Replace(contentString, "\n", "", -1)
+			inline = strings.Replace(inline, ",}", " }, ", -1)
+
+			env[secret.Name] = inline
+		}
+
 	}
 
 	buf, err := s.gitHandler.Templates().CreateConfiguration(env)
@@ -95,6 +115,10 @@ func (s *GithubServer) CreateSecret(ctx context.Context, req *proto.CreateSecret
 }
 
 func (s *GithubServer) DeleteSecret(ctx context.Context, req *proto.DeleteSecretRequest) (*proto.DeleteSecretResponse, error) {
+	if err := s.gitHandler.Exec().KvsDelete(ctx, strings.ToLower(req.Name)); err != nil {
+		return nil, err
+	}
+
 	if err := s.gitHandler.Secrets().Delete(ctx, req.Name); err != nil {
 		return nil, err
 	}

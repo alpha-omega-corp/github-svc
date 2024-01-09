@@ -4,10 +4,19 @@ package docker;
 option go_package = "github.com/alpha-omega-corp/github-svc/proto/github";
 
 service GithubService {
+  rpc GetSecretValue(GetSecretContentRequest) returns (GetSecretContentResponse) {}
   rpc GetSecrets(GetSecretsRequest) returns (GetSecretsResponse) {}
   rpc CreateSecret(CreateSecretRequest) returns (CreateSecretResponse) {}
   rpc DeleteSecret(DeleteSecretRequest) returns (DeleteSecretResponse) {}
   rpc SyncEnvironment(SyncEnvironmentRequest) returns (SyncEnvironmentResponse) {}
+}
+
+message GetSecretContentRequest {
+  string name = 1;
+}
+
+message GetSecretContentResponse {
+  bytes content = 1;
 }
 
 message SyncEnvironmentRequest {}
