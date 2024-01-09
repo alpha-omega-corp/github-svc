@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GithubServiceClient interface {
-	GetSecretValue(ctx context.Context, in *GetSecretContentRequest, opts ...grpc.CallOption) (*GetSecretContentResponse, error)
+	GetSecretContent(ctx context.Context, in *GetSecretContentRequest, opts ...grpc.CallOption) (*GetSecretContentResponse, error)
 	GetSecrets(ctx context.Context, in *GetSecretsRequest, opts ...grpc.CallOption) (*GetSecretsResponse, error)
 	CreateSecret(ctx context.Context, in *CreateSecretRequest, opts ...grpc.CallOption) (*CreateSecretResponse, error)
 	DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error)
@@ -37,9 +37,9 @@ func NewGithubServiceClient(cc grpc.ClientConnInterface) GithubServiceClient {
 	return &githubServiceClient{cc}
 }
 
-func (c *githubServiceClient) GetSecretValue(ctx context.Context, in *GetSecretContentRequest, opts ...grpc.CallOption) (*GetSecretContentResponse, error) {
+func (c *githubServiceClient) GetSecretContent(ctx context.Context, in *GetSecretContentRequest, opts ...grpc.CallOption) (*GetSecretContentResponse, error) {
 	out := new(GetSecretContentResponse)
-	err := c.cc.Invoke(ctx, "/docker.GithubService/GetSecretValue", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/docker.GithubService/GetSecretContent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (c *githubServiceClient) SyncEnvironment(ctx context.Context, in *SyncEnvir
 // All implementations must embed UnimplementedGithubServiceServer
 // for forward compatibility
 type GithubServiceServer interface {
-	GetSecretValue(context.Context, *GetSecretContentRequest) (*GetSecretContentResponse, error)
+	GetSecretContent(context.Context, *GetSecretContentRequest) (*GetSecretContentResponse, error)
 	GetSecrets(context.Context, *GetSecretsRequest) (*GetSecretsResponse, error)
 	CreateSecret(context.Context, *CreateSecretRequest) (*CreateSecretResponse, error)
 	DeleteSecret(context.Context, *DeleteSecretRequest) (*DeleteSecretResponse, error)
@@ -98,8 +98,8 @@ type GithubServiceServer interface {
 type UnimplementedGithubServiceServer struct {
 }
 
-func (UnimplementedGithubServiceServer) GetSecretValue(context.Context, *GetSecretContentRequest) (*GetSecretContentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSecretValue not implemented")
+func (UnimplementedGithubServiceServer) GetSecretContent(context.Context, *GetSecretContentRequest) (*GetSecretContentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSecretContent not implemented")
 }
 func (UnimplementedGithubServiceServer) GetSecrets(context.Context, *GetSecretsRequest) (*GetSecretsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSecrets not implemented")
@@ -126,20 +126,20 @@ func RegisterGithubServiceServer(s grpc.ServiceRegistrar, srv GithubServiceServe
 	s.RegisterService(&GithubService_ServiceDesc, srv)
 }
 
-func _GithubService_GetSecretValue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GithubService_GetSecretContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSecretContentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GithubServiceServer).GetSecretValue(ctx, in)
+		return srv.(GithubServiceServer).GetSecretContent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.GithubService/GetSecretValue",
+		FullMethod: "/docker.GithubService/GetSecretContent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GithubServiceServer).GetSecretValue(ctx, req.(*GetSecretContentRequest))
+		return srv.(GithubServiceServer).GetSecretContent(ctx, req.(*GetSecretContentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -224,8 +224,8 @@ var GithubService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GithubServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetSecretValue",
-			Handler:    _GithubService_GetSecretValue_Handler,
+			MethodName: "GetSecretContent",
+			Handler:    _GithubService_GetSecretContent_Handler,
 		},
 		{
 			MethodName: "GetSecrets",
