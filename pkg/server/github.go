@@ -4,9 +4,7 @@ import (
 	"context"
 	"github.com/alpha-omega-corp/github-svc/pkg/services/github"
 	proto "github.com/alpha-omega-corp/github-svc/proto/github"
-	svc "github.com/alpha-omega-corp/services/server"
-	"github.com/spf13/viper"
-	_ "github.com/spf13/viper/remote"
+	"github.com/alpha-omega-corp/services/types"
 	"net/http"
 	"strings"
 )
@@ -17,16 +15,9 @@ type GithubServer struct {
 	gitHandler github.Handler
 }
 
-func NewGithubServer() *GithubServer {
-	v := viper.New()
-	cManager := svc.NewConfigManager(v)
-	config, err := cManager.GithubConfig()
-	if err != nil {
-		panic(err)
-	}
-
+func NewGithubServer(c types.ConfigGithubService) *GithubServer {
 	return &GithubServer{
-		gitHandler: github.NewHandler(config),
+		gitHandler: github.NewHandler(c),
 	}
 }
 

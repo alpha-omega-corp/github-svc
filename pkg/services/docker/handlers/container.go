@@ -4,58 +4,45 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/alpha-omega-corp/services/config"
-	"github.com/alpha-omega-corp/services/server"
-	"github.com/docker/docker/api/types"
+	"github.com/alpha-omega-corp/services/types"
+	docker "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
-	"github.com/uptrace/bun"
 	"io"
 	"strings"
 )
 
 type ContainerHandler interface {
 	CreateFrom(ctx context.Context, path string, name string) error
-	GetAll(ctx context.Context) ([]types.Container, error)
-	GetAllFrom(ctx context.Context, path string) ([]types.Container, error)
+	GetAll(ctx context.Context) ([]docker.Container, error)
+	GetAllFrom(ctx context.Context, path string) ([]docker.Container, error)
 	Delete(ctx context.Context, cId string) error
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
 
 type containerHandler struct {
 	ContainerHandler
-	config config.GithubConfig
+	config types.ConfigGithubService
 	client *client.Client
-	db     *bun.DB
 }
 
-func NewContainerHandler(cli *client.Client, db *bun.DB) ContainerHandler {
-	v := viper.New()
-	cManager := server.NewConfigManager(v)
-
-	c, err := cManager.GithubConfig()
-	if err != nil {
-		panic(err)
-	}
-
+func NewContainerHandler(c types.ConfigGithubService, cli *client.Client) ContainerHandler {
 	return &containerHandler{
 		config: c,
 		client: cli,
-		db:     db,
 	}
 }
 
 func (h *containerHandler) Delete(ctx context.Context, cId string) error {
-	return h.client.ContainerRemove(ctx, cId, types.ContainerRemoveOptions{
+	return h.client.ContainerRemove(ctx, cId, docker.ContainerRemoveOptions{
 		Force: true,
 	})
 }
 
-func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error) {
-	containers, err := h.client.ContainerList(ctx, types.ContainerListOptions{})
+func (h *containerHandler) GetAll(ctx context.Context) ([]docker.Container, error) {
+	containers, err := h.client.ContainerList(ctx, docker.ContainerListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +51,7 @@ func (h *containerHandler) GetAll(ctx context.Context) ([]types.Container, error
 }
 
 func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error) {
-	options := types.ContainerLogsOptions{
+	options := docker.ContainerLogsOptions{
 		ShowStdout: true,
 		Timestamps: true,
 		Details:    false,
@@ -79,9 +66,9 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 }
 
 func (h *containerHandler) PullImage(imgName string, ctx context.Context) error {
-	authConfig := types.AuthConfig{
+	authConfig := docker.AuthConfig{
 		Username: "packages",
-		Password: h.config.Token,
+		Password: h.config.Organization.Token,
 	}
 
 	encodedJSON, err := json.Marshal(authConfig)
@@ -90,7 +77,7 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 	}
 
 	authString := base64.URLEncoding.EncodeToString(encodedJSON)
-	_, err = h.client.ImagePull(ctx, imgName, types.ImagePullOptions{RegistryAuth: authString})
+	_, err = h.client.ImagePull(ctx, imgName, docker.ImagePullOptions{RegistryAuth: authString})
 	if err != nil {
 		return err
 	}
@@ -98,9 +85,9 @@ func (h *containerHandler) PullImage(imgName string, ctx context.Context) error 
 	return nil
 }
 
-func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]types.Container, error) {
+func (h *containerHandler) GetAllFrom(ctx context.Context, path string) ([]docker.Container, error) {
 	filter := filters.NewArgs(filters.KeyValuePair{Key: "ancestor", Value: h.imageName(path)})
-	return h.client.ContainerList(ctx, types.ContainerListOptions{
+	return h.client.ContainerList(ctx, docker.ContainerListOptions{
 		All:     true,
 		Filters: filter,
 	})
@@ -119,7 +106,7 @@ func (h *containerHandler) CreateFrom(ctx context.Context, path string, name str
 		panic(err)
 	}
 
-	if err := h.client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err := h.client.ContainerStart(ctx, resp.ID, docker.ContainerStartOptions{}); err != nil {
 		panic(err)
 	}
 

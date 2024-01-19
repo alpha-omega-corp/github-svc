@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"github.com/alpha-omega-corp/services/config"
+	"github.com/alpha-omega-corp/services/types"
 	"github.com/google/go-github/v56/github"
 )
 
@@ -28,11 +28,11 @@ type RepositoryHandler interface {
 
 type repositoryHandler struct {
 	RepositoryHandler
-	config config.GithubConfig
+	config types.ConfigGithubService
 	client *github.Client
 }
 
-func NewRepositoryHandler(config config.GithubConfig, cli *github.Client) RepositoryHandler {
+func NewRepositoryHandler(config types.ConfigGithubService, cli *github.Client) RepositoryHandler {
 	return &repositoryHandler{
 		config: config,
 		client: cli,

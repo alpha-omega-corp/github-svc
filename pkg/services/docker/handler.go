@@ -2,8 +2,8 @@ package docker
 
 import (
 	"github.com/alpha-omega-corp/github-svc/pkg/services/docker/handlers"
+	"github.com/alpha-omega-corp/services/types"
 	"github.com/docker/docker/client"
-	"github.com/uptrace/bun"
 )
 
 type Handler interface {
@@ -15,7 +15,7 @@ type dockerHandler struct {
 	ctHandler handlers.ContainerHandler
 }
 
-func NewHandler(db *bun.DB) Handler {
+func NewHandler(c types.ConfigGithubService) Handler {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
@@ -29,7 +29,7 @@ func NewHandler(db *bun.DB) Handler {
 	}(cli)
 
 	return &dockerHandler{
-		ctHandler: handlers.NewContainerHandler(cli, db),
+		ctHandler: handlers.NewContainerHandler(c, cli),
 	}
 }
 

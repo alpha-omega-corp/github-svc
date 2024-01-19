@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package docker;
+package github;
 option go_package = "github.com/alpha-omega-corp/github-svc/proto/github";
 
 service GithubService {

@@ -2,7 +2,7 @@ package github
 
 import (
 	"github.com/alpha-omega-corp/github-svc/pkg/services/github/handlers"
-	"github.com/alpha-omega-corp/services/config"
+	"github.com/alpha-omega-corp/services/types"
 	"github.com/google/go-github/v56/github"
 	_ "github.com/spf13/viper/remote"
 )
@@ -25,15 +25,15 @@ type gitHandler struct {
 	execHandler    handlers.ExecHandler
 }
 
-func NewHandler(config config.GithubConfig) Handler {
-	client := github.NewClient(nil).WithAuthToken(config.Token)
+func NewHandler(c types.ConfigGithubService) Handler {
+	client := github.NewClient(nil).WithAuthToken(c.Organization.Token)
 	execHandler := handlers.NewExecHandler()
 
 	return &gitHandler{
-		repoHandler:    handlers.NewRepositoryHandler(config, client),
-		pkgHandler:     handlers.NewPackageHandler(config, client, execHandler),
-		secretsHandler: handlers.NewSecretsHandler(config, client),
-		tmplHandler:    handlers.NewTemplateHandler(config),
+		repoHandler:    handlers.NewRepositoryHandler(c, client),
+		pkgHandler:     handlers.NewPackageHandler(c, client, execHandler),
+		secretsHandler: handlers.NewSecretsHandler(c, client),
+		tmplHandler:    handlers.NewTemplateHandler(c),
 		execHandler:    execHandler,
 	}
 }

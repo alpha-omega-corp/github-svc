@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"github.com/alpha-omega-corp/github-svc/pkg/services/docker"
 	"github.com/alpha-omega-corp/github-svc/pkg/services/github"
-	"github.com/alpha-omega-corp/github-svc/pkg/types"
+	pkgTypes "github.com/alpha-omega-corp/github-svc/pkg/types"
 	proto "github.com/alpha-omega-corp/github-svc/proto/docker"
-	svc "github.com/alpha-omega-corp/services/server"
-	"github.com/spf13/viper"
-	"github.com/uptrace/bun"
+	"github.com/alpha-omega-corp/services/types"
 	"io"
 	"net/http"
 	"os"
@@ -21,28 +19,21 @@ import (
 
 var repository = "container-images"
 
-type Server struct {
+type DockerServer struct {
 	proto.UnimplementedDockerServiceServer
 
 	gitHandler    github.Handler
 	dockerHandler docker.Handler
 }
 
-func NewDockerServer(db *bun.DB) *Server {
-	v := viper.New()
-	cManager := svc.NewConfigManager(v)
-	config, err := cManager.GithubConfig()
-	if err != nil {
-		panic(err)
-	}
-
-	return &Server{
-		gitHandler:    github.NewHandler(config),
-		dockerHandler: docker.NewHandler(db),
+func NewDockerServer(c types.ConfigGithubService) *DockerServer {
+	return &DockerServer{
+		gitHandler:    github.NewHandler(c),
+		dockerHandler: docker.NewHandler(c),
 	}
 }
 
-func (s *Server) GetPackageTags(ctx context.Context, req *proto.GetPackageTagsRequest) (*proto.GetPackageTagsResponse, error) {
+func (s *DockerServer) GetPackageTags(ctx context.Context, req *proto.GetPackageTagsRequest) (*proto.GetPackageTagsResponse, error) {
 	res, err := s.gitHandler.Packages().GetVersions(req.Name)
 	if err != nil {
 		return nil, err
@@ -58,7 +49,7 @@ func (s *Server) GetPackageTags(ctx context.Context, req *proto.GetPackageTagsRe
 	}, nil
 }
 
-func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePackageContainerRequest) (*proto.CreatePackageContainerResponse, error) {
+func (s *DockerServer) CreatePackageContainer(ctx context.Context, req *proto.CreatePackageContainerRequest) (*proto.CreatePackageContainerResponse, error) {
 	if err := s.dockerHandler.Container().CreateFrom(ctx, req.Path, req.Name); err != nil {
 		return nil, err
 	}
@@ -68,7 +59,7 @@ func (s *Server) CreatePackageContainer(ctx context.Context, req *proto.CreatePa
 	}, nil
 }
 
-func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.GetPackageVersionContainersRequest) (*proto.GetPackageVersionContainersResponse, error) {
+func (s *DockerServer) GetPackageVersionContainers(ctx context.Context, req *proto.GetPackageVersionContainersRequest) (*proto.GetPackageVersionContainersResponse, error) {
 	res, err := s.dockerHandler.Container().GetAllFrom(ctx, req.Path)
 	if err != nil {
 		return nil, err
@@ -92,7 +83,7 @@ func (s *Server) GetPackageVersionContainers(ctx context.Context, req *proto.Get
 	}, nil
 }
 
-func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
+func (s *DockerServer) PushPackage(ctx context.Context, req *proto.PushPackageRequest) (*proto.PushPackageResponse, error) {
 	buf, err := s.gitHandler.Templates().CreateMakefile(req.Name, req.Tag)
 	if err != nil {
 		return nil, err
@@ -140,7 +131,7 @@ func (s *Server) PushPackage(ctx context.Context, req *proto.PushPackageRequest)
 	}, nil
 }
 
-func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
+func (s *DockerServer) CreatePackage(ctx context.Context, req *proto.CreatePackageRequest) (*proto.CreatePackageResponse, error) {
 	path := req.Workdir + "/" + req.Tag + "/Dockerfile"
 	file := bytes.Trim(req.Dockerfile, "\x00")
 
@@ -153,7 +144,7 @@ func (s *Server) CreatePackage(ctx context.Context, req *proto.CreatePackageRequ
 	}, nil
 }
 
-func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePackageVersionRequest) (*proto.CreatePackageVersionResponse, error) {
+func (s *DockerServer) CreatePackageVersion(ctx context.Context, req *proto.CreatePackageVersionRequest) (*proto.CreatePackageVersionResponse, error) {
 	path := req.Name + "/" + req.Tag + "/Dockerfile"
 	file, err := s.gitHandler.Templates().CreateDockerfile(req.Name, req.Tag, req.Content)
 	if err != nil {
@@ -171,7 +162,7 @@ func (s *Server) CreatePackageVersion(ctx context.Context, req *proto.CreatePack
 	}, nil
 }
 
-func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageVersionRequest) (*proto.DeletePackageVersionResponse, error) {
+func (s *DockerServer) DeletePackageVersion(ctx context.Context, req *proto.DeletePackageVersionRequest) (*proto.DeletePackageVersionResponse, error) {
 	if err := s.gitHandler.Packages().Delete(req.Name, req.Version); err != nil {
 		return nil, err
 	}
@@ -193,7 +184,7 @@ func (s *Server) DeletePackageVersion(ctx context.Context, req *proto.DeletePack
 	}, nil
 }
 
-func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
+func (s *DockerServer) GetPackages(ctx context.Context, req *proto.GetPackagesRequest) (*proto.GetPackagesResponse, error) {
 	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", ".")
 	if err != nil {
 		return nil, err
@@ -216,7 +207,7 @@ func (s *Server) GetPackages(ctx context.Context, req *proto.GetPackagesRequest)
 	}, nil
 }
 
-func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
+func (s *DockerServer) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (*proto.GetPackageResponse, error) {
 	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Name)
 
 	if err != nil {
@@ -230,7 +221,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 		return nil, err
 	}
 
-	versionMap := make(map[string]types.GitPackageVersion)
+	versionMap := make(map[string]pkgTypes.GitPackageVersion)
 	versionSlice := make([]*proto.PackageVersion, len(c.Dir))
 	for _, version := range versions {
 		for _, tag := range version.Metadata.Container.Tags {
@@ -259,7 +250,7 @@ func (s *Server) GetPackage(ctx context.Context, req *proto.GetPackageRequest) (
 	}, nil
 }
 
-func (s *Server) GetPackageFile(ctx context.Context, req *proto.GetPackageFileRequest) (*proto.GetPackageFileResponse, error) {
+func (s *DockerServer) GetPackageFile(ctx context.Context, req *proto.GetPackageFileRequest) (*proto.GetPackageFileResponse, error) {
 	c, err := s.gitHandler.Repositories().GetContents(ctx, "container-images", req.Path+"/"+req.Name)
 	if err != nil {
 		return nil, err
@@ -275,7 +266,7 @@ func (s *Server) GetPackageFile(ctx context.Context, req *proto.GetPackageFileRe
 	}, nil
 }
 
-func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequest) (*proto.GetContainersResponse, error) {
+func (s *DockerServer) GetContainers(ctx context.Context, req *proto.GetContainersRequest) (*proto.GetContainersResponse, error) {
 	containers, err := s.dockerHandler.Container().GetAll(ctx)
 
 	if err != nil {
@@ -300,7 +291,7 @@ func (s *Server) GetContainers(ctx context.Context, req *proto.GetContainersRequ
 	}, nil
 }
 
-func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLogsRequest) (*proto.GetContainerLogsResponse, error) {
+func (s *DockerServer) GetContainerLogs(ctx context.Context, req *proto.GetContainerLogsRequest) (*proto.GetContainerLogsResponse, error) {
 	logs, err := s.dockerHandler.Container().GetLogs(req.ContainerId, ctx)
 	if err != nil {
 		return nil, err
@@ -318,7 +309,7 @@ func (s *Server) GetContainerLogs(ctx context.Context, req *proto.GetContainerLo
 	}, nil
 }
 
-func (s *Server) DeleteContainer(ctx context.Context, req *proto.DeleteContainerRequest) (*proto.DeleteContainerResponse, error) {
+func (s *DockerServer) DeleteContainer(ctx context.Context, req *proto.DeleteContainerRequest) (*proto.DeleteContainerResponse, error) {
 	if err := s.dockerHandler.Container().Delete(ctx, req.ContainerId); err != nil {
 		return nil, err
 	}

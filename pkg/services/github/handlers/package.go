@@ -2,32 +2,32 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/alpha-omega-corp/github-svc/pkg/types"
-	"github.com/alpha-omega-corp/services/config"
+	pkgTypes "github.com/alpha-omega-corp/github-svc/pkg/types"
+	"github.com/alpha-omega-corp/services/types"
 	"github.com/google/go-github/v56/github"
 	"io"
 	"strconv"
 )
 
 type PackageHandler interface {
-	GetVersions(name string) ([]types.GitPackageVersion, error)
-	GetVersion(name string, vId int64) (*types.GitPackageVersion, error)
+	GetVersions(name string) ([]pkgTypes.GitPackageVersion, error)
+	GetVersion(name string, vId int64) (*pkgTypes.GitPackageVersion, error)
 	Push(path string) (err error)
 	Delete(name string, vId *int64) error
 }
 
 type packageHandler struct {
 	PackageHandler
-	config       config.GithubConfig
+	config       types.ConfigGithubService
 	execHandler  ExecHandler
 	queryHandler QueryHandler
 }
 
-func NewPackageHandler(config config.GithubConfig, cli *github.Client, execHandler ExecHandler) PackageHandler {
+func NewPackageHandler(c types.ConfigGithubService, cli *github.Client, execHandler ExecHandler) PackageHandler {
 	return &packageHandler{
-		config:       config,
-		queryHandler: NewQueryHandler(cli, config),
+		queryHandler: NewQueryHandler(cli, c),
 		execHandler:  execHandler,
+		config:       c,
 	}
 }
 
@@ -39,7 +39,7 @@ func (h *packageHandler) Push(path string) (err error) {
 	return
 }
 
-func (h *packageHandler) GetVersions(name string) ([]types.GitPackageVersion, error) {
+func (h *packageHandler) GetVersions(name string) ([]pkgTypes.GitPackageVersion, error) {
 	res, err := h.queryHandler.query("GET", "packages/container/"+name+"/versions")
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (h *packageHandler) GetVersions(name string) ([]types.GitPackageVersion, er
 		return nil, err
 	}
 
-	var versions []types.GitPackageVersion
+	var versions []pkgTypes.GitPackageVersion
 	if errBuf := json.Unmarshal(body, &versions); err != nil {
 		return nil, errBuf
 	}
@@ -65,7 +65,7 @@ func (h *packageHandler) GetVersions(name string) ([]types.GitPackageVersion, er
 	return versions, nil
 }
 
-func (h *packageHandler) GetVersion(name string, vId int64) (*types.GitPackageVersion, error) {
+func (h *packageHandler) GetVersion(name string, vId int64) (*pkgTypes.GitPackageVersion, error) {
 	path := "packages/container/" + name + "/versions/" + strconv.FormatInt(vId, 10)
 	res, err := h.queryHandler.query("GET", path)
 	if err != nil {
@@ -84,7 +84,7 @@ func (h *packageHandler) GetVersion(name string, vId int64) (*types.GitPackageVe
 		return nil, err
 	}
 
-	pkg := new(types.GitPackageVersion)
+	pkg := new(pkgTypes.GitPackageVersion)
 	if errBuf := json.Unmarshal(body, &pkg); err != nil {
 		return nil, errBuf
 	}

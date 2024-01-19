@@ -3,8 +3,9 @@ package handlers
 import (
 	"bytes"
 	"embed"
-	"github.com/alpha-omega-corp/github-svc/pkg/types"
-	"github.com/alpha-omega-corp/services/config"
+	pkgTypes "github.com/alpha-omega-corp/github-svc/pkg/types"
+	"github.com/alpha-omega-corp/services/types"
+
 	"io/fs"
 	"sync"
 	"text/template"
@@ -28,12 +29,12 @@ type templateHandler struct {
 
 	fs       fs.FS
 	template *template.Template
-	config   config.GithubConfig
+	config   types.ConfigGithubService
 }
 
-func NewTemplateHandler(c config.GithubConfig) TemplateHandler {
+func NewTemplateHandler(c types.ConfigGithubService) TemplateHandler {
 	fileSys := getFS()
-	tmpl, err := template.ParseFS(getFS(), "*.template")
+	tmpl, err := template.ParseFS(fileSys, "*.template")
 
 	if err != nil {
 		panic(err)
@@ -48,7 +49,8 @@ func NewTemplateHandler(c config.GithubConfig) TemplateHandler {
 
 func (h *templateHandler) CreateMakefile(pkgName string, pkgTag string) (*bytes.Buffer, error) {
 	buf := &bytes.Buffer{}
-	if err := h.template.ExecuteTemplate(buf, "makefile.template", &types.CreateMakefileDto{
+
+	if err := h.template.ExecuteTemplate(buf, "makefile.template", &pkgTypes.CreateMakefileDto{
 		Registry: h.config.Organization.Registry,
 		OrgName:  h.config.Organization.Name,
 		Name:     pkgName,
@@ -63,7 +65,7 @@ func (h *templateHandler) CreateMakefile(pkgName string, pkgTag string) (*bytes.
 func (h *templateHandler) CreateDockerfile(pkgName string, pkgTag string, content []byte) (*bytes.Buffer, error) {
 	buf := &bytes.Buffer{}
 
-	if err := h.template.ExecuteTemplate(buf, "dockerfile.template", &types.CreateDockerfileDto{
+	if err := h.template.ExecuteTemplate(buf, "dockerfile.template", &pkgTypes.CreateDockerfileDto{
 		Name:    pkgName,
 		Tag:     pkgTag,
 		Author:  h.config.Organization.Name,
@@ -77,6 +79,7 @@ func (h *templateHandler) CreateDockerfile(pkgName string, pkgTag string, conten
 
 func (h *templateHandler) CreateConfiguration(data map[string]string) (*bytes.Buffer, error) {
 	buf := &bytes.Buffer{}
+
 	if err := h.template.ExecuteTemplate(buf, "configuration.template", data); err != nil {
 		return nil, err
 	}

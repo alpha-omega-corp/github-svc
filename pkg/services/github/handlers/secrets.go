@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/alpha-omega-corp/services/config"
+	"github.com/alpha-omega-corp/services/types"
 	"github.com/google/go-github/v56/github"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/nacl/box"
@@ -29,11 +29,11 @@ type SecretsHandler interface {
 type secretsHandler struct {
 	SecretsHandler
 
-	config config.GithubConfig
+	config types.ConfigGithubService
 	client *github.Client
 }
 
-func NewSecretsHandler(config config.GithubConfig, cli *github.Client) SecretsHandler {
+func NewSecretsHandler(config types.ConfigGithubService, cli *github.Client) SecretsHandler {
 	return &secretsHandler{
 		config: config,
 		client: cli,
