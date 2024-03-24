@@ -27,6 +27,16 @@ type GithubServiceClient interface {
 	CreateSecret(ctx context.Context, in *CreateSecretRequest, opts ...grpc.CallOption) (*CreateSecretResponse, error)
 	DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error)
 	SyncEnvironment(ctx context.Context, in *SyncEnvironmentRequest, opts ...grpc.CallOption) (*SyncEnvironmentResponse, error)
+	PushPackage(ctx context.Context, in *PushPackageRequest, opts ...grpc.CallOption) (*PushPackageResponse, error)
+	ContainerPackage(ctx context.Context, in *ContainerPackageRequest, opts ...grpc.CallOption) (*ContainerPackageResponse, error)
+	GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error)
+	GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error)
+	GetPackageTags(ctx context.Context, in *GetPackageTagsRequest, opts ...grpc.CallOption) (*GetPackageTagsResponse, error)
+	GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error)
+	CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error)
+	DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error)
+	CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error)
+	DeletePackageVersion(ctx context.Context, in *DeletePackageVersionRequest, opts ...grpc.CallOption) (*DeletePackageVersionResponse, error)
 }
 
 type githubServiceClient struct {
@@ -39,7 +49,7 @@ func NewGithubServiceClient(cc grpc.ClientConnInterface) GithubServiceClient {
 
 func (c *githubServiceClient) GetSecretContent(ctx context.Context, in *GetSecretContentRequest, opts ...grpc.CallOption) (*GetSecretContentResponse, error) {
 	out := new(GetSecretContentResponse)
-	err := c.cc.Invoke(ctx, "/docker.GithubService/GetSecretContent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/GetSecretContent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +58,7 @@ func (c *githubServiceClient) GetSecretContent(ctx context.Context, in *GetSecre
 
 func (c *githubServiceClient) GetSecrets(ctx context.Context, in *GetSecretsRequest, opts ...grpc.CallOption) (*GetSecretsResponse, error) {
 	out := new(GetSecretsResponse)
-	err := c.cc.Invoke(ctx, "/docker.GithubService/GetSecrets", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/GetSecrets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +67,7 @@ func (c *githubServiceClient) GetSecrets(ctx context.Context, in *GetSecretsRequ
 
 func (c *githubServiceClient) CreateSecret(ctx context.Context, in *CreateSecretRequest, opts ...grpc.CallOption) (*CreateSecretResponse, error) {
 	out := new(CreateSecretResponse)
-	err := c.cc.Invoke(ctx, "/docker.GithubService/CreateSecret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/CreateSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +76,7 @@ func (c *githubServiceClient) CreateSecret(ctx context.Context, in *CreateSecret
 
 func (c *githubServiceClient) DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error) {
 	out := new(DeleteSecretResponse)
-	err := c.cc.Invoke(ctx, "/docker.GithubService/DeleteSecret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/DeleteSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +85,97 @@ func (c *githubServiceClient) DeleteSecret(ctx context.Context, in *DeleteSecret
 
 func (c *githubServiceClient) SyncEnvironment(ctx context.Context, in *SyncEnvironmentRequest, opts ...grpc.CallOption) (*SyncEnvironmentResponse, error) {
 	out := new(SyncEnvironmentResponse)
-	err := c.cc.Invoke(ctx, "/docker.GithubService/SyncEnvironment", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/SyncEnvironment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) PushPackage(ctx context.Context, in *PushPackageRequest, opts ...grpc.CallOption) (*PushPackageResponse, error) {
+	out := new(PushPackageResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/PushPackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) ContainerPackage(ctx context.Context, in *ContainerPackageRequest, opts ...grpc.CallOption) (*ContainerPackageResponse, error) {
+	out := new(ContainerPackageResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/ContainerPackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) GetPackages(ctx context.Context, in *GetPackagesRequest, opts ...grpc.CallOption) (*GetPackagesResponse, error) {
+	out := new(GetPackagesResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/GetPackages", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) GetPackage(ctx context.Context, in *GetPackageRequest, opts ...grpc.CallOption) (*GetPackageResponse, error) {
+	out := new(GetPackageResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/GetPackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) GetPackageTags(ctx context.Context, in *GetPackageTagsRequest, opts ...grpc.CallOption) (*GetPackageTagsResponse, error) {
+	out := new(GetPackageTagsResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/GetPackageTags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) GetPackageFile(ctx context.Context, in *GetPackageFileRequest, opts ...grpc.CallOption) (*GetPackageFileResponse, error) {
+	out := new(GetPackageFileResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/GetPackageFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) CreatePackage(ctx context.Context, in *CreatePackageRequest, opts ...grpc.CallOption) (*CreatePackageResponse, error) {
+	out := new(CreatePackageResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/CreatePackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) DeletePackage(ctx context.Context, in *DeletePackageRequest, opts ...grpc.CallOption) (*DeletePackageResponse, error) {
+	out := new(DeletePackageResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/DeletePackage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) CreatePackageVersion(ctx context.Context, in *CreatePackageVersionRequest, opts ...grpc.CallOption) (*CreatePackageVersionResponse, error) {
+	out := new(CreatePackageVersionResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/CreatePackageVersion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubServiceClient) DeletePackageVersion(ctx context.Context, in *DeletePackageVersionRequest, opts ...grpc.CallOption) (*DeletePackageVersionResponse, error) {
+	out := new(DeletePackageVersionResponse)
+	err := c.cc.Invoke(ctx, "/alphomega.github.GithubService/DeletePackageVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +191,16 @@ type GithubServiceServer interface {
 	CreateSecret(context.Context, *CreateSecretRequest) (*CreateSecretResponse, error)
 	DeleteSecret(context.Context, *DeleteSecretRequest) (*DeleteSecretResponse, error)
 	SyncEnvironment(context.Context, *SyncEnvironmentRequest) (*SyncEnvironmentResponse, error)
+	PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error)
+	ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error)
+	GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error)
+	GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error)
+	GetPackageTags(context.Context, *GetPackageTagsRequest) (*GetPackageTagsResponse, error)
+	GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error)
+	CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error)
+	DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error)
+	CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error)
+	DeletePackageVersion(context.Context, *DeletePackageVersionRequest) (*DeletePackageVersionResponse, error)
 	mustEmbedUnimplementedGithubServiceServer()
 }
 
@@ -112,6 +222,36 @@ func (UnimplementedGithubServiceServer) DeleteSecret(context.Context, *DeleteSec
 }
 func (UnimplementedGithubServiceServer) SyncEnvironment(context.Context, *SyncEnvironmentRequest) (*SyncEnvironmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncEnvironment not implemented")
+}
+func (UnimplementedGithubServiceServer) PushPackage(context.Context, *PushPackageRequest) (*PushPackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PushPackage not implemented")
+}
+func (UnimplementedGithubServiceServer) ContainerPackage(context.Context, *ContainerPackageRequest) (*ContainerPackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ContainerPackage not implemented")
+}
+func (UnimplementedGithubServiceServer) GetPackages(context.Context, *GetPackagesRequest) (*GetPackagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackages not implemented")
+}
+func (UnimplementedGithubServiceServer) GetPackage(context.Context, *GetPackageRequest) (*GetPackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackage not implemented")
+}
+func (UnimplementedGithubServiceServer) GetPackageTags(context.Context, *GetPackageTagsRequest) (*GetPackageTagsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackageTags not implemented")
+}
+func (UnimplementedGithubServiceServer) GetPackageFile(context.Context, *GetPackageFileRequest) (*GetPackageFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackageFile not implemented")
+}
+func (UnimplementedGithubServiceServer) CreatePackage(context.Context, *CreatePackageRequest) (*CreatePackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePackage not implemented")
+}
+func (UnimplementedGithubServiceServer) DeletePackage(context.Context, *DeletePackageRequest) (*DeletePackageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePackage not implemented")
+}
+func (UnimplementedGithubServiceServer) CreatePackageVersion(context.Context, *CreatePackageVersionRequest) (*CreatePackageVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePackageVersion not implemented")
+}
+func (UnimplementedGithubServiceServer) DeletePackageVersion(context.Context, *DeletePackageVersionRequest) (*DeletePackageVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePackageVersion not implemented")
 }
 func (UnimplementedGithubServiceServer) mustEmbedUnimplementedGithubServiceServer() {}
 
@@ -136,7 +276,7 @@ func _GithubService_GetSecretContent_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.GithubService/GetSecretContent",
+		FullMethod: "/alphomega.github.GithubService/GetSecretContent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GithubServiceServer).GetSecretContent(ctx, req.(*GetSecretContentRequest))
@@ -154,7 +294,7 @@ func _GithubService_GetSecrets_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.GithubService/GetSecrets",
+		FullMethod: "/alphomega.github.GithubService/GetSecrets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GithubServiceServer).GetSecrets(ctx, req.(*GetSecretsRequest))
@@ -172,7 +312,7 @@ func _GithubService_CreateSecret_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.GithubService/CreateSecret",
+		FullMethod: "/alphomega.github.GithubService/CreateSecret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GithubServiceServer).CreateSecret(ctx, req.(*CreateSecretRequest))
@@ -190,7 +330,7 @@ func _GithubService_DeleteSecret_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.GithubService/DeleteSecret",
+		FullMethod: "/alphomega.github.GithubService/DeleteSecret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GithubServiceServer).DeleteSecret(ctx, req.(*DeleteSecretRequest))
@@ -208,10 +348,190 @@ func _GithubService_SyncEnvironment_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/docker.GithubService/SyncEnvironment",
+		FullMethod: "/alphomega.github.GithubService/SyncEnvironment",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GithubServiceServer).SyncEnvironment(ctx, req.(*SyncEnvironmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_PushPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PushPackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).PushPackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/PushPackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).PushPackage(ctx, req.(*PushPackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_ContainerPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContainerPackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).ContainerPackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/ContainerPackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).ContainerPackage(ctx, req.(*ContainerPackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_GetPackages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).GetPackages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/GetPackages",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).GetPackages(ctx, req.(*GetPackagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_GetPackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).GetPackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/GetPackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).GetPackage(ctx, req.(*GetPackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_GetPackageTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).GetPackageTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/GetPackageTags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).GetPackageTags(ctx, req.(*GetPackageTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_GetPackageFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPackageFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).GetPackageFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/GetPackageFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).GetPackageFile(ctx, req.(*GetPackageFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_CreatePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).CreatePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/CreatePackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).CreatePackage(ctx, req.(*CreatePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_DeletePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).DeletePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/DeletePackage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).DeletePackage(ctx, req.(*DeletePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_CreatePackageVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePackageVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).CreatePackageVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/CreatePackageVersion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).CreatePackageVersion(ctx, req.(*CreatePackageVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GithubService_DeletePackageVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePackageVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServiceServer).DeletePackageVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/alphomega.github.GithubService/DeletePackageVersion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServiceServer).DeletePackageVersion(ctx, req.(*DeletePackageVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -220,7 +540,7 @@ func _GithubService_SyncEnvironment_Handler(srv interface{}, ctx context.Context
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GithubService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "docker.GithubService",
+	ServiceName: "alphomega.github.GithubService",
 	HandlerType: (*GithubServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -242,6 +562,46 @@ var GithubService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncEnvironment",
 			Handler:    _GithubService_SyncEnvironment_Handler,
+		},
+		{
+			MethodName: "PushPackage",
+			Handler:    _GithubService_PushPackage_Handler,
+		},
+		{
+			MethodName: "ContainerPackage",
+			Handler:    _GithubService_ContainerPackage_Handler,
+		},
+		{
+			MethodName: "GetPackages",
+			Handler:    _GithubService_GetPackages_Handler,
+		},
+		{
+			MethodName: "GetPackage",
+			Handler:    _GithubService_GetPackage_Handler,
+		},
+		{
+			MethodName: "GetPackageTags",
+			Handler:    _GithubService_GetPackageTags_Handler,
+		},
+		{
+			MethodName: "GetPackageFile",
+			Handler:    _GithubService_GetPackageFile_Handler,
+		},
+		{
+			MethodName: "CreatePackage",
+			Handler:    _GithubService_CreatePackage_Handler,
+		},
+		{
+			MethodName: "DeletePackage",
+			Handler:    _GithubService_DeletePackage_Handler,
+		},
+		{
+			MethodName: "CreatePackageVersion",
+			Handler:    _GithubService_CreatePackageVersion_Handler,
+		},
+		{
+			MethodName: "DeletePackageVersion",
+			Handler:    _GithubService_DeletePackageVersion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

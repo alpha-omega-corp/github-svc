@@ -15,7 +15,7 @@ type dockerHandler struct {
 	ctHandler handlers.ContainerHandler
 }
 
-func NewHandler(c types.ConfigGithubService) Handler {
+func NewHandler(c types.Config) Handler {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
@@ -29,7 +29,7 @@ func NewHandler(c types.ConfigGithubService) Handler {
 	}(cli)
 
 	return &dockerHandler{
-		ctHandler: handlers.NewContainerHandler(c, cli),
+		ctHandler: handlers.NewContainerHandler(cli, c),
 	}
 }
 

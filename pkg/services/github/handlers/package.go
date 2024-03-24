@@ -3,8 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	pkgTypes "github.com/alpha-omega-corp/github-svc/pkg/types"
-	"github.com/alpha-omega-corp/services/types"
-	"github.com/google/go-github/v56/github"
 	"io"
 	"strconv"
 )
@@ -18,16 +16,14 @@ type PackageHandler interface {
 
 type packageHandler struct {
 	PackageHandler
-	config       types.ConfigGithubService
 	execHandler  ExecHandler
 	queryHandler QueryHandler
 }
 
-func NewPackageHandler(c types.ConfigGithubService, cli *github.Client, execHandler ExecHandler) PackageHandler {
+func NewPackageHandler(query QueryHandler, exec ExecHandler) PackageHandler {
 	return &packageHandler{
-		queryHandler: NewQueryHandler(cli, c),
-		execHandler:  execHandler,
-		config:       c,
+		queryHandler: query,
+		execHandler:  exec,
 	}
 }
 

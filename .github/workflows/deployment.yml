@@ -10,7 +10,7 @@ jobs:
         env:
           INPUT_NAME: ${{ secrets.APP_GITHUB_NAME }}
           INPUT_REPO: ${{ secrets.APP_GITHUB_REPO }}
-          INPUT_PATH: ${{ secrets.PATH_SERVICES }}
+          INPUT_PATH: ${{ secrets.ALPHOMEGA_PATH }}
           INPUT_SECRET: ${{ secrets.SSH_PASSWORD }}
         with:
           host: ${{ secrets.SSH_HOST }}

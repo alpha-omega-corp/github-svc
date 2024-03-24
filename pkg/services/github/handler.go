@@ -4,7 +4,6 @@ import (
 	"github.com/alpha-omega-corp/github-svc/pkg/services/github/handlers"
 	"github.com/alpha-omega-corp/services/types"
 	"github.com/google/go-github/v56/github"
-	_ "github.com/spf13/viper/remote"
 )
 
 type Handler interface {
@@ -25,16 +24,22 @@ type gitHandler struct {
 	execHandler    handlers.ExecHandler
 }
 
-func NewHandler(c types.ConfigGithubService) Handler {
-	client := github.NewClient(nil).WithAuthToken(c.Organization.Token)
-	execHandler := handlers.NewExecHandler()
+func NewHandler(c types.Config) Handler {
+	client := github.NewClient(nil).WithAuthToken(c.Viper.GetString("token"))
+
+	exec := handlers.NewExecHandler()
+	tmpl := handlers.NewTemplateHandler(c)
+	repo := handlers.NewRepositoryHandler(client, c)
+	secret := handlers.NewSecretsHandler(client, c)
+	query := handlers.NewQueryHandler(client, c)
+	pkg := handlers.NewPackageHandler(query, exec)
 
 	return &gitHandler{
-		repoHandler:    handlers.NewRepositoryHandler(c, client),
-		pkgHandler:     handlers.NewPackageHandler(c, client, execHandler),
-		secretsHandler: handlers.NewSecretsHandler(c, client),
-		tmplHandler:    handlers.NewTemplateHandler(c),
-		execHandler:    execHandler,
+		tmplHandler:    tmpl,
+		repoHandler:    repo,
+		secretsHandler: secret,
+		pkgHandler:     pkg,
+		execHandler:    exec,
 	}
 }
 

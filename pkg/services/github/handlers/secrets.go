@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
+// Encrypt
 const (
 	keySize   = 32
 	nonceSize = 24
@@ -29,19 +30,19 @@ type SecretsHandler interface {
 type secretsHandler struct {
 	SecretsHandler
 
-	config types.ConfigGithubService
 	client *github.Client
+	org    string
 }
 
-func NewSecretsHandler(config types.ConfigGithubService, cli *github.Client) SecretsHandler {
+func NewSecretsHandler(cli *github.Client, c types.Config) SecretsHandler {
 	return &secretsHandler{
-		config: config,
 		client: cli,
+		org:    c.Viper.GetString("name"),
 	}
 }
 
 func (h *secretsHandler) GetAll(ctx context.Context) ([]*github.Secret, error) {
-	data, _, err := h.client.Actions.ListOrgSecrets(ctx, h.config.Organization.Name, &github.ListOptions{})
+	data, _, err := h.client.Actions.ListOrgSecrets(ctx, h.org, &github.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func (h *secretsHandler) Create(ctx context.Context, name string, content []byte
 		return err
 	}
 
-	_, err = h.client.Actions.CreateOrUpdateOrgSecret(ctx, h.config.Organization.Name, &github.EncryptedSecret{
+	_, err = h.client.Actions.CreateOrUpdateOrgSecret(ctx, h.org, &github.EncryptedSecret{
 		Name:           name,
 		KeyID:          key.GetKeyID(),
 		EncryptedValue: encodedString,
@@ -74,7 +75,7 @@ func (h *secretsHandler) Create(ctx context.Context, name string, content []byte
 }
 
 func (h *secretsHandler) Delete(ctx context.Context, name string) error {
-	_, err := h.client.Actions.DeleteOrgSecret(ctx, h.config.Organization.Name, name)
+	_, err := h.client.Actions.DeleteOrgSecret(ctx, h.org, name)
 	if err != nil {
 		return err
 	}
@@ -83,7 +84,7 @@ func (h *secretsHandler) Delete(ctx context.Context, name string) error {
 }
 
 func (h *secretsHandler) GetKey(ctx context.Context) (*github.PublicKey, error) {
-	data, _, err := h.client.Actions.GetOrgPublicKey(ctx, h.config.Organization.Name)
+	data, _, err := h.client.Actions.GetOrgPublicKey(ctx, h.org)
 	if err != nil {
 		return nil, err
 	}

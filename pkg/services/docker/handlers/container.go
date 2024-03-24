@@ -9,7 +9,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	_ "github.com/spf13/viper/remote"
 	"io"
 	"strings"
 )
@@ -18,21 +17,32 @@ type ContainerHandler interface {
 	CreateFrom(ctx context.Context, path string, name string) error
 	GetAll(ctx context.Context) ([]docker.Container, error)
 	GetAllFrom(ctx context.Context, path string) ([]docker.Container, error)
+	Start(ctx context.Context, cId string) error
+	Stop(ctx context.Context, cId string) error
 	Delete(ctx context.Context, cId string) error
 	GetLogs(containerId string, ctx context.Context) (io.ReadCloser, error)
 }
 
 type containerHandler struct {
 	ContainerHandler
-	config types.ConfigGithubService
+
 	client *client.Client
+	config types.Config
 }
 
-func NewContainerHandler(c types.ConfigGithubService, cli *client.Client) ContainerHandler {
+func NewContainerHandler(cli *client.Client, c types.Config) ContainerHandler {
 	return &containerHandler{
-		config: c,
 		client: cli,
+		config: c,
 	}
+}
+
+func (h *containerHandler) Start(ctx context.Context, cId string) error {
+	return h.client.ContainerStart(ctx, cId, docker.ContainerStartOptions{})
+}
+
+func (h *containerHandler) Stop(ctx context.Context, cId string) error {
+	return h.client.ContainerStop(ctx, cId, container.StopOptions{})
 }
 
 func (h *containerHandler) Delete(ctx context.Context, cId string) error {
@@ -55,6 +65,7 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 		ShowStdout: true,
 		Timestamps: true,
 		Details:    false,
+		Since:      "40m",
 	}
 	logs, err := h.client.ContainerLogs(ctx, containerId, options)
 
@@ -68,7 +79,7 @@ func (h *containerHandler) GetLogs(containerId string, ctx context.Context) (io.
 func (h *containerHandler) PullImage(imgName string, ctx context.Context) error {
 	authConfig := docker.AuthConfig{
 		Username: "packages",
-		Password: h.config.Organization.Token,
+		Password: h.config.Viper.GetString("token"),
 	}
 
 	encodedJSON, err := json.Marshal(authConfig)
@@ -114,5 +125,5 @@ func (h *containerHandler) CreateFrom(ctx context.Context, path string, name str
 }
 
 func (h *containerHandler) imageName(path string) string {
-	return h.config.Organization.Registry + "/" + h.config.Organization.Name + "/" + strings.Replace(path, "/", ":", 1)
+	return h.config.Viper.GetString("registry") + "/" + h.config.Viper.GetString("name") + "/" + strings.Replace(path, "/", ":", 1)
 }

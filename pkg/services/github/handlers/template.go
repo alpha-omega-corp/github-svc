@@ -5,7 +5,6 @@ import (
 	"embed"
 	pkgTypes "github.com/alpha-omega-corp/github-svc/pkg/types"
 	"github.com/alpha-omega-corp/services/types"
-
 	"io/fs"
 	"sync"
 	"text/template"
@@ -29,10 +28,10 @@ type templateHandler struct {
 
 	fs       fs.FS
 	template *template.Template
-	config   types.ConfigGithubService
+	config   types.Config
 }
 
-func NewTemplateHandler(c types.ConfigGithubService) TemplateHandler {
+func NewTemplateHandler(c types.Config) TemplateHandler {
 	fileSys := getFS()
 	tmpl, err := template.ParseFS(fileSys, "*.template")
 
@@ -51,8 +50,8 @@ func (h *templateHandler) CreateMakefile(pkgName string, pkgTag string) (*bytes.
 	buf := &bytes.Buffer{}
 
 	if err := h.template.ExecuteTemplate(buf, "makefile.template", &pkgTypes.CreateMakefileDto{
-		Registry: h.config.Organization.Registry,
-		OrgName:  h.config.Organization.Name,
+		Registry: h.config.Viper.GetString("registry"),
+		OrgName:  h.config.Viper.GetString("name"),
 		Name:     pkgName,
 		Tag:      pkgTag,
 	}); err != nil {
@@ -68,7 +67,7 @@ func (h *templateHandler) CreateDockerfile(pkgName string, pkgTag string, conten
 	if err := h.template.ExecuteTemplate(buf, "dockerfile.template", &pkgTypes.CreateDockerfileDto{
 		Name:    pkgName,
 		Tag:     pkgTag,
-		Author:  h.config.Organization.Name,
+		Author:  h.config.Viper.GetString("name"),
 		Content: string(bytes.Trim(content, "\x00")),
 	}); err != nil {
 		return nil, err

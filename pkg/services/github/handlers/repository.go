@@ -28,20 +28,20 @@ type RepositoryHandler interface {
 
 type repositoryHandler struct {
 	RepositoryHandler
-	config types.ConfigGithubService
 	client *github.Client
+	org    string
 }
 
-func NewRepositoryHandler(config types.ConfigGithubService, cli *github.Client) RepositoryHandler {
+func NewRepositoryHandler(cli *github.Client, c types.Config) RepositoryHandler {
 	return &repositoryHandler{
-		config: config,
 		client: cli,
+		org:    c.Viper.GetString("name"),
 	}
 }
 
 func (h *repositoryHandler) GetAll(ctx context.Context) ([]*github.Repository, error) {
 	opt := &github.RepositoryListByOrgOptions{}
-	packages, _, err := h.client.Repositories.ListByOrg(ctx, h.config.Organization.Name, opt)
+	packages, _, err := h.client.Repositories.ListByOrg(ctx, h.org, opt)
 
 	if err != nil {
 		return nil, err
@@ -51,14 +51,14 @@ func (h *repositoryHandler) GetAll(ctx context.Context) ([]*github.Repository, e
 }
 
 func (h *repositoryHandler) GetPackageFiles(ctx context.Context, name string) ([]*PackageFile, error) {
-	_, dir, _, err := h.client.Repositories.GetContents(ctx, h.config.Organization.Name, "container-images", name, nil)
+	_, dir, _, err := h.client.Repositories.GetContents(ctx, h.org, "container-images", name, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	files := make([]*PackageFile, len(dir))
 	for index, file := range dir {
-		f, _, _, err := h.client.Repositories.GetContents(ctx, h.config.Organization.Name, "container-images", name+"/"+*file.Name, nil)
+		f, _, _, err := h.client.Repositories.GetContents(ctx, h.org, "container-images", name+"/"+*file.Name, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (h *repositoryHandler) GetPackageFiles(ctx context.Context, name string) ([
 }
 
 func (h *repositoryHandler) GetContents(ctx context.Context, repo string, path string) (*Content, error) {
-	file, dir, res, err := h.client.Repositories.GetContents(ctx, h.config.Organization.Name, repo, path, nil)
+	file, dir, res, err := h.client.Repositories.GetContents(ctx, h.org, repo, path, nil)
 
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (h *repositoryHandler) GetContents(ctx context.Context, repo string, path s
 }
 
 func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path string, content []byte, sha *string) error {
-	_, _, err := h.client.Repositories.CreateFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
+	_, _, err := h.client.Repositories.CreateFile(ctx, h.org, repo, path, &github.RepositoryContentFileOptions{
 		Message: github.String("Webhook: Action"),
 		Content: content,
 		SHA:     sha,
@@ -106,7 +106,7 @@ func (h *repositoryHandler) PutContents(ctx context.Context, repo string, path s
 }
 
 func (h *repositoryHandler) DeleteContents(ctx context.Context, repo string, path string, sha string) error {
-	_, _, err := h.client.Repositories.DeleteFile(ctx, h.config.Organization.Name, repo, path, &github.RepositoryContentFileOptions{
+	_, _, err := h.client.Repositories.DeleteFile(ctx, h.org, repo, path, &github.RepositoryContentFileOptions{
 		Message: github.String("Webhook: Action"),
 		SHA:     github.String(sha),
 	})
